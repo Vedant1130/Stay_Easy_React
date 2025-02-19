@@ -1,0 +1,97 @@
+/* Container for the search input and button */
+.search-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.8rem 15rem 0.8rem 1rem;
+  font-size: 1rem;
+  border-radius: 25px;
+  border: 1px solid #ddd;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: #fe424d;
+}
+
+.search-btn {
+  background-color: #fe424d;
+  color: #fff;
+  border-radius: 80%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  position: absolute;
+  right: 10px;
+}
+
+.search-btn:hover {
+  background-color: #f76c6d;
+}
+
+.search-btn svg {
+  font-size: 15px;
+  color: white;
+}
+
+/* General navbar styles */
+.custom-navbar {
+  width: 100%;
+  max-width: 100%;
+  padding: 1rem 1.5rem;
+  height: auto;
+}
+
+/* Make sure navbar content aligns properly */
+.navbar-collapse {
+  padding-top: 10px;
+}
+
+/* Ensure buttons align well */
+.navbar-nav .nav-link {
+  padding: 8px 12px;
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  /* Tablet & Mobile */
+  .navbar-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start !important; /* Align buttons to left */
+  }
+
+  .auth-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px; /* Adds spacing between buttons */
+  }
+
+  .navbar-toggler {
+    border: none; /* Removes default border */
+  }
+}
+
+@media (min-width: 993px) {
+  /* Large Screens */
+  .auth-buttons {
+    flex-direction: row; /* Keep buttons in a row on larger screens */
+    align-items: center;
+    gap: 15px;
+  }
+}

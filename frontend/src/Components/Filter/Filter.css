@@ -1,0 +1,59 @@
+.filter-container {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 15px 20px;
+  white-space: nowrap;
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+}
+
+.filter-container::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome/Safari */
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 10px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease-in-out;
+}
+
+.filter-icon {
+  font-size: 25px; /* Adjust icon size */
+  color: #717171;
+}
+
+.filter-label {
+  font-size: 12px;
+  margin-top: 5px;
+  color: #717171;
+}
+
+.filter-item:hover,
+.filter-item.active {
+  border-bottom: 2px solid black;
+  color: black;
+}
+
+.filter-item:hover .filter-icon,
+.filter-item:hover .filter-label {
+  color: black;
+}
+
+@media (max-width: 768px) {
+  .filter-container {
+    scroll-snap-type: x mandatory; /* Smooth scroll effect */
+    overflow-x: scroll;
+    display: flex;
+    padding-bottom: 10px;
+  }
+
+  .filter-item {
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+  }
+}

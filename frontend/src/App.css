@@ -1,0 +1,26 @@
+html,
+body {
+  font-family: "Plus Jakarta Sans", sans-serif !important;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ensure the page takes full height */
+}
+
+.container {
+  flex: 1; /* Pushes the footer down */
+}
+
+.f-info {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  text-align: center;
+  width: 100%;
+  position: relative; /* Default position */
+  bottom: 0;
+}
