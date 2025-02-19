@@ -4,6 +4,7 @@ import { register } from "../../api";
 import Modal from "react-bootstrap/Modal";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
+import { showToast } from "../ToastNotification/ToastNotification";
 
 const initialValues = {
   username: "",
@@ -15,15 +16,35 @@ const SignUp = ({ onClose }) => {
   const nav = useNavigate();
   const { setShowLoginPopup } = useAuth();
 
-  const { values, errors, handleChange, handleSubmit } = useFormik({
+  const { values, errors, handleChange, handleSubmit, setSubmitting } = useFormik({
     initialValues: initialValues,
     validationSchema: signupSchema,
     onSubmit: async ({ username, email, password }) => {
-      const success = await register(username, email, password);
-      if (success) {
-        setShowLoginPopup(true);
-        nav("/");
-        onClose();
+      try {
+        const response = await register(username, email, password);
+
+        if (response.success) {
+          showToast("Signup successful! Please log in.", "success");
+          setShowLoginPopup(true);
+          nav("/");
+          onClose();
+        } else {
+          // ✅ Extract backend errors properly
+          const errorMessages = Object.values(response.errors || {})
+            .flat()
+            .join(" "); // Converts errors into a readable string
+
+          showToast(errorMessages || "Signup failed. Please try again.", "error");
+        }
+      } catch (error) {
+        // ✅ Handle errors from the backend properly
+        const errorMessages = Object.values(error.response?.data || {})
+          .flat()
+          .join(" ");
+
+        showToast(errorMessages || "An error occurred. Please try again.", "error");
+      } finally {
+        setSubmitting(false);
       }
     },
   });

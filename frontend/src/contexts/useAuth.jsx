@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { is_authenticated, login, logout } from "../api";
 import { useNavigate } from "react-router-dom";
+import { showToast } from "../Components/ToastNotification/ToastNotification";
+import Loader from "../Components/Loader/Loader";
 
 const AuthContext = createContext();
 
@@ -30,21 +32,40 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
   const login_user = async (username, password) => {
-    const success = await login(username, password);
-    if (success) {
+    try {
+      const success = await login(username, password);
+
+      if (!success) {
+        // ❌ If login failed, stop here
+        showToast("Invalid username or password", "error");
+        return false;
+      }
+
+      await get_authenticated(); // ✅ Only call if login succeeds
       setIsAuthenticated(true);
-      await get_authenticated();
+      showToast("Login successful!", "success");
+      return true;
+    } catch (error) {
+      showToast("Something went wrong. Try again!", "error");
+      return false;
     }
-    return success;
   };
 
   const logout_user = async () => {
-    const success = await logout();
-    if (success) {
-      setIsAuthenticated(false);
-      setUser(null);
-      nav("/");
+    try {
+      const success = await logout();
+      if (success) {
+        setIsAuthenticated(false);
+        setUser(null);
+        showToast("Logged out successfully!", "success"); // ✅ Logout toast
+        nav("/");
+      } else {
+        showToast("Logout failed. Try again!", "error"); // ❌ Error toast
+      }
+    } catch (error) {
+      showToast("An error occurred while logging out.", "error"); // ❌ Error toast
     }
   };
 
@@ -66,7 +87,13 @@ export const AuthProvider = ({ children }) => {
         user,
       }}
     >
-      {children}
+      {loading ? (
+        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-white bg-opacity-50 backdrop-blur-md">
+          <Loader type="clip" size={50} color="#36D7B7" />
+        </div>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 };

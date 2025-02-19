@@ -17,16 +17,23 @@ const UPDATE_URL = `${BASE_URL}update/`;
 const DELETE_URL = `${BASE_URL}delete/`;
 
 export const login = async (username, password) => {
-  const response = await axios.post(
-    LOGIN_URL,
-    { username: username, password: password },
-    { withCredentials: true, headers: { "Content-Type": "application/json" } }
-  );
-  if (response.data.success) {
-    localStorage.setItem("access_token", response.data.access_token);
-    localStorage.setItem("refresh_token", response.data.refresh_token);
+  try {
+    const response = await axios.post(
+      LOGIN_URL,
+      { username, password },
+      { withCredentials: true, headers: { "Content-Type": "application/json" } }
+    );
+
+    if (response.data.success) {
+      localStorage.setItem("access_token", response.data.access_token);
+      localStorage.setItem("refresh_token", response.data.refresh_token);
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return false;
   }
-  return response.data;
 };
 
 export const get_listings = async () => {
@@ -85,33 +92,37 @@ export const create_listing = async (
     formData.append("category", category);
 
     const response = await axios.post(CREATE_LISTINGS, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      headers: { "Content-Type": "multipart/form-data" },
       withCredentials: true,
     });
 
     return response.data;
   } catch (error) {
-    console.log(error);
-    return call_refresh(
-      error,
-      axios.post(CREATE_LISTINGS, {
+    console.error("Error creating listing:", error);
+
+    return await call_refresh(error, () =>
+      axios.post(CREATE_LISTINGS, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       })
     );
   }
 };
 
-const call_refresh = async (error, func) => {
+const call_refresh = async (error, retryFunc) => {
   if (error.response && error.response.status === 401) {
     const tokenRefreshed = await refresh_token();
     if (tokenRefreshed) {
-      const retryResponse = await func();
-      return retryResponse.data;
+      try {
+        const retryResponse = await retryFunc();
+        return retryResponse.data;
+      } catch (retryError) {
+        console.error("Retry request failed:", retryError);
+        return null;
+      }
     }
   }
-  return false;
+  return null;
 };
 
 export const is_authenticated = async () => {
@@ -135,12 +146,22 @@ export const logout = async () => {
 };
 
 export const register = async (username, email, password) => {
-  const response = await axios.post(REGISTER_URL, {
-    username: username,
-    email: email,
-    password: password,
-  });
-  return response.data;
+  try {
+    const response = await axios.post(
+      REGISTER_URL,
+      { username, email, password },
+      { withCredentials: true, headers: { "Content-Type": "application/json" } }
+    );
+
+    return { success: true, message: response.data.message }; // ✅ Return success
+  } catch (error) {
+    return {
+      success: false,
+      errors: error.response?.data || {
+        message: "Signup failed. Please try again.",
+      },
+    }; // ❌ Return backend errors correctly
+  }
 };
 
 export const update_listing = async (
@@ -156,29 +177,54 @@ export const update_listing = async (
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
-    formData.append("image", image);
-    formData.append("price", price);
+
+    // Ensure image is a valid file before appending
+    if (image instanceof File) {
+      formData.append("image", image);
+    }
+
+    // Ensure price is a valid number
+    if (price) {
+      formData.append("price", parseFloat(price));
+    }
+
     formData.append("country", country);
     formData.append("location", location);
 
     const response = await axios.put(`${UPDATE_URL}${id}/`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      headers: { "Content-Type": "multipart/form-data" },
       withCredentials: true,
     });
+
     return response.data;
   } catch (error) {
-    console.log(error);
-    return false;
+    console.error("Error updating listing:", error);
+
+    return await call_refresh(error, () =>
+      axios.put(`${UPDATE_URL}${id}/`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+      })
+    );
   }
 };
 
 export const delete_listing = async (id) => {
-  const response = await axios.delete(`${DELETE_URL}${id}/`, {
-    withCredentials: true,
-  });
-  return response;
+  try {
+    const response = await axios.delete(`${DELETE_URL}${id}/`, {
+      withCredentials: true,
+    });
+
+    return response.data; // Return only the response data
+  } catch (error) {
+    console.error("Error deleting listing:", error);
+
+    // If needed, return a custom error response
+    return {
+      success: false,
+      message: error?.response?.data || "Delete failed",
+    };
+  }
 };
 
 export const search_listings = async (location) => {
@@ -186,9 +232,14 @@ export const search_listings = async (location) => {
     const response = await axios.get(`${SEARCH_URL}`, {
       params: { location: location },
     });
-    return response.data.listings;
+
+    // Ensure we return valid data
+    return response.data.listings || [];
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching search results:", error);
+
+    // Return an empty array on error to prevent UI crashes
+    return [];
   }
 };
 

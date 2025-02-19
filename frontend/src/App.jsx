@@ -13,10 +13,13 @@ import PrivateRoute from "./Components/private_route";
 import { useState } from "react";
 import ToastNotification from "./Components/ToastNotification/ToastNotification";
 import Filter from "./Components/Filter/Filter";
+import TaxToggle from "./Components/TaxToggle/TaxToggle";
 
 function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [isTaxEnabled, setIsTaxEnabled] = useState(false);
+
   return (
     <>
       <ToastNotification />
@@ -33,8 +36,23 @@ function App() {
               path="/"
               element={
                 <>
-                  <Filter setSearchResults={setSearchResults} />
-                  <Listing searchResults={searchResults} />
+                  <div className="container">
+                    <div className="row align-items-center">
+                      <div className="col-md-9 col-12">
+                        <Filter setSearchResults={setSearchResults} />
+                      </div>
+                      <div className="col-md-3 col-12 text-md-end">
+                        <TaxToggle
+                          isTaxEnabled={isTaxEnabled}
+                          setIsTaxEnabled={setIsTaxEnabled}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <Listing
+                    searchResults={searchResults}
+                    isTaxEnabled={isTaxEnabled}
+                  />
                 </>
               }
             />

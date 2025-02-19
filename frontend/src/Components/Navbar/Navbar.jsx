@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { FaHouse } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
-import { logout, search_listings } from "../../api";
+import { search_listings } from "../../api";
 import { useAuth } from "../../contexts/useAuth";
 import Login from "../Users/Login";
 import SignUp from "../Users/SignUp";
 import "./Navbar.css";
-
+import { showToast } from "../ToastNotification/ToastNotification";
 
 const Navbar = ({ setSearchResults }) => {
   const { logout_user, showLoginPopup, setShowLoginPopup, user } = useAuth();
@@ -31,20 +31,27 @@ const Navbar = ({ setSearchResults }) => {
     }
   }, [showLoginPopup]);
 
-  const handleSearchChange = (e) => {
-    setSearchDestination(e.target.value);
-  };
+  // const handleSearchChange = (e) => {
+  //   setSearchDestination(e.target.value);
+  // };
 
   const handleSearch = async () => {
     if (searchDestination.trim() === "") {
       setSearchResults([]);
       return;
     }
+
     try {
       const response = await search_listings(searchDestination);
+
+      if (response.length === 0) {
+        showToast("No listings found for your search.", "info");
+      }
+
       setSearchResults(response);
     } catch (error) {
       console.error("Error fetching search results:", error);
+      showToast("Failed to fetch search results.", "error");
     }
   };
 
@@ -159,7 +166,6 @@ const Navbar = ({ setSearchResults }) => {
       {isSignUpOpen && <SignUp onClose={() => setIsSignUpOpen(false)} />}
     </nav>
   );
- 
 };
 
 export default Navbar;

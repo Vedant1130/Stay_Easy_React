@@ -1,23 +1,35 @@
-import { FaFacebook } from "react-icons/fa";
-import { FaInstagram } from "react-icons/fa";
-import { FaLinkedin } from "react-icons/fa";
+import { FaGlobe } from "react-icons/fa";
 
 import "./Footer.css";
 
 const Footer = () => {
   return (
-    <div className="f-info">
-      <div className="f-info-socials">
-        <FaFacebook />
-        <FaInstagram />
-        <FaLinkedin />
+    <footer className="footer bg-light p-3">
+      <div className="container d-flex flex-column flex-md-row justify-content-between align-items-center">
+        {/* Left Side */}
+        <div className="footer-left text-muted">
+          © {new Date().getFullYear()} Stay Easy
+         
+        </div>
+
+        {/* Right Side */}
+        <div className="footer-right d-flex align-items-center text-muted">
+           <a href="#" className="text-decoration-none mx-2">
+            Privacy
+          </a>
+          ·
+          <a href="#" className="text-decoration-none mx-2">
+            Terms
+          </a>
+          ·
+          <a href="#" className="text-decoration-none mx-2">
+            Sitemap
+          </a>
+          
+         
+        </div>
       </div>
-      <div className="f-info-brand">&copy;StayEasy Private Limited</div>
-      <div className="f-info-links">
-        <a href="/privacy">Privacy</a>
-        <a href="/terms">Terms</a>
-      </div>
-    </div>
+    </footer>
   );
 };
 

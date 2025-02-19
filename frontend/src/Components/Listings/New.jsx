@@ -1,8 +1,9 @@
 import { useFormik } from "formik";
 import { newSchema } from "../Schema/Index";
 import { useNavigate } from "react-router";
-import { create_listing, filter_listings, get_categories } from "../../api";
+import { create_listing, get_categories } from "../../api";
 import { useState, useEffect } from "react";
+import { showToast } from "../ToastNotification/ToastNotification";
 
 const initialValues = {
   title: "",
@@ -20,17 +21,24 @@ const New = () => {
     useFormik({
       initialValues: initialValues,
       validationSchema: newSchema,
-      onSubmit: async (values) => {
-        await create_listing(
-          values.title,
-          values.description,
-          values.image,
-          values.price,
-          values.country,
-          values.location,
-          Number(values.category)
-        );
-        navigate("/");
+      onSubmit: async (values, { setSubmitting }) => {
+        try {
+          await create_listing(
+            values.title,
+            values.description,
+            values.image,
+            values.price,
+            values.country,
+            values.location,
+            Number(values.category)
+          );
+          showToast("Listing created successfully!", "success");
+          navigate("/");
+        } catch (error) {
+          showToast("Failed to create listing. Try again!", "error");
+        } finally {
+          setSubmitting(false);
+        }
       },
     });
 
@@ -40,7 +48,7 @@ const New = () => {
         const data = await get_categories();
         setCategories(data);
       } catch (error) {
-        console.error("Error fetching categories", error);
+        showToast("Error fetching categories", "error");
       }
     };
 

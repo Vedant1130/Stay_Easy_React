@@ -3,6 +3,7 @@ import { loginSchema } from "../Schema/Index";
 import { useAuth } from "../../contexts/useAuth";
 import Modal from "react-bootstrap/Modal";
 
+
 const initialValues = {
   username: "",
   password: "",
@@ -16,11 +17,15 @@ const Login = ({ onClose, onLoginSuccess }) => {
     validationSchema: loginSchema,
     onSubmit: async ({ username, password }, { setSubmitting }) => {
       const success = await login_user(username, password);
-      if (success) {
-        onClose();
-        onLoginSuccess();
+      try {
+        if (success) {
+          onClose();
+          onLoginSuccess();
+        }
+        setSubmitting(false);
+      } catch (error) {
+        
       }
-      setSubmitting(false);
     },
   });
 

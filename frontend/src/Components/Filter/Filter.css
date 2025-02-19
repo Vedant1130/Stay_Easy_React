@@ -33,15 +33,15 @@
   color: #717171;
 }
 
-.filter-item:hover,
+/* .filter-item:hover,
 .filter-item.active {
   border-bottom: 2px solid black;
   color: black;
-}
+} */
 
 .filter-item:hover .filter-icon,
 .filter-item:hover .filter-label {
-  color: black;
+  color: #f76c6d;
 }
 
 @media (max-width: 768px) {

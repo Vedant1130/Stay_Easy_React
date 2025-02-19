@@ -8,10 +8,10 @@ import {
   FaTractor,
   FaSnowflake,
   FaUmbrellaBeach,
-  FaPersonSkiing,
 } from "react-icons/fa6";
 import "./Filter.css";
-import { filter_listings } from "../../api";
+import { filter_listings, get_listings } from "../../api";
+import { showToast } from "../ToastNotification/ToastNotification";
 
 const Filter = ({ setSearchResults }) => {
   const [activeFilter, setActiveFilter] = useState(null);
@@ -24,17 +24,34 @@ const Filter = ({ setSearchResults }) => {
     { id: 6, icon: <FaTractor />, label: "Farms" },
     { id: 7, icon: <FaSnowflake />, label: "Arctic Pools" },
     { id: 8, icon: <FaUmbrellaBeach />, label: "Beach" },
-    { id: 9, icon: <FaPersonSkiing />, label: "Skiing" },
+    // { id: 9, icon: <FaPersonSkiing />, label: "Skiing" },
   ];
   const handleFilterClick = async (filterCategoryId) => {
-    setActiveFilter(filterCategoryId); // Update the active filter
+    if (activeFilter === filterCategoryId) {
+      // Reset filter to show all listings
+      setActiveFilter(null);
+      try {
+        const allListings = await get_listings();
+        setSearchResults(allListings);
+      } catch (error) {
+        console.error("Error fetching all listings:", error);
+        showToast("Failed to load all listings.", "error");
+      }
+    } else {
+      // Apply filter
+      setActiveFilter(filterCategoryId);
+      try {
+        const filteredData = await filter_listings(filterCategoryId);
 
-    try {
-      // Fetch filtered listings from the backend API
-      const filteredData = await filter_listings(filterCategoryId);
-      setSearchResults(filteredData); // Pass the fetched data to the parent component
-    } catch (error) {
-      console.error("Error fetching filtered data:", error);
+        if (filteredData.length === 0) {
+          showToast("No listings found in this category.", "info");
+        }
+
+        setSearchResults(filteredData);
+      } catch (error) {
+        console.error("Error fetching filtered data:", error);
+        showToast("Failed to fetch filtered listings.", "error");
+      }
     }
   };
   return (

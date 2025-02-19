@@ -35,7 +35,9 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class ListingSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(required = False)
-    category = serializers.CharField()
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(), required=True
+    )
     class Meta:
         model = Listing
         fields = ['id','title','description','image','price','location','country','owner','category']

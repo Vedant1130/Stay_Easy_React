@@ -6,6 +6,7 @@ import { editSchema } from "../Schema/Index";
 import { useEffect } from "react";
 import { useState } from "react";
 import { show_listings, update_listing } from "../../api";
+import { showToast } from "../ToastNotification/ToastNotification";
 
 const Edit = () => {
   const { id } = useParams();
@@ -14,8 +15,12 @@ const Edit = () => {
 
   useEffect(() => {
     const getListing = async () => {
-      const data = await show_listings(id);
-      setListing(data);
+      try {
+        const data = await show_listings(id);
+        setListing(data);
+      } catch (error) {
+        showToast("Error fetching listing data!", "error");
+      }
     };
     getListing();
   }, [id]);
@@ -37,26 +42,26 @@ const Edit = () => {
     // },
   });
 
-  const handleEdit = async ({
-    id,
-    title,
-    description,
-    image,
-    price,
-    country,
-    location,
-  }) => {
-    const success = await update_listing(
-      id,
-      title,
-      description,
-      image,
-      price,
-      country,
-      location
-    );
-    if (success) {
-      nav("/");
+  const handleEdit = async () => {
+    try {
+      const success = await update_listing(
+        id,
+        values.title,
+        values.description,
+        values.image,
+        values.price,
+        values.country,
+        values.location
+      );
+
+      if (success) {
+        showToast("Listing updated successfully!", "success");
+        nav("/");
+      } else {
+        showToast("Failed to update listing. Try again!", "error");
+      }
+    } catch (error) {
+      showToast("Something went wrong!", "error");
     }
   };
 

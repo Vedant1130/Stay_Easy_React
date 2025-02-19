@@ -5,7 +5,7 @@ import "./ShowListing.css";
 import { useState, useEffect } from "react";
 import { delete_listing, show_listings } from "../../api";
 import { useAuth } from "../../contexts/useAuth";
-
+import { showToast } from "../ToastNotification/ToastNotification";
 const ShowListing = () => {
   const { id } = useParams();
   const [listing, setListing] = useState([]);
@@ -21,12 +21,17 @@ const ShowListing = () => {
   }, [id]);
 
   const handleDelete = async () => {
-    const success = await delete_listing(id);
-    if (success) {
+    const response = await delete_listing(id);
+
+    if (response.success !== false) {
+      showToast("Listing deleted successfully!", "success");
+
       if (!user) {
         await get_authenticated();
       }
       nav("/");
+    } else {
+      showToast(response.message || "Failed to delete listing.", "error");
     }
   };
 
