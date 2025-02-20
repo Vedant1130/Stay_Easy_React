@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaMountainCity,
   FaMountain,
@@ -12,9 +12,13 @@ import {
 import "./Filter.css";
 import { filter_listings, get_listings } from "../../api";
 import { showToast } from "../ToastNotification/ToastNotification";
+import Loader from "../Loader/Loader"; // Import Loader
 
 const Filter = ({ setSearchResults }) => {
   const [activeFilter, setActiveFilter] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null); // Store toast message
+
   const filters = [
     { id: 1, icon: <FaMountainCity />, label: "Iconic Cities" },
     { id: 2, icon: <FaMountain />, label: "Mountains" },
@@ -24,50 +28,63 @@ const Filter = ({ setSearchResults }) => {
     { id: 6, icon: <FaTractor />, label: "Farms" },
     { id: 7, icon: <FaSnowflake />, label: "Arctic Pools" },
     { id: 8, icon: <FaUmbrellaBeach />, label: "Beach" },
-    // { id: 9, icon: <FaPersonSkiing />, label: "Skiing" },
   ];
+
   const handleFilterClick = async (filterCategoryId) => {
-    if (activeFilter === filterCategoryId) {
-      // Reset filter to show all listings
-      setActiveFilter(null);
-      try {
-        const allListings = await get_listings();
-        setSearchResults(allListings);
-      } catch (error) {
-        console.error("Error fetching all listings:", error);
-        showToast("Failed to load all listings.", "error");
-      }
-    } else {
-      // Apply filter
-      setActiveFilter(filterCategoryId);
-      try {
-        const filteredData = await filter_listings(filterCategoryId);
+    setLoading(true); // Show loader
 
-        if (filteredData.length === 0) {
-          showToast("No listings found in this category.", "info");
-        }
-
-        setSearchResults(filteredData);
-      } catch (error) {
-        console.error("Error fetching filtered data:", error);
-        showToast("Failed to fetch filtered listings.", "error");
+    try {
+      let data;
+      if (activeFilter === filterCategoryId) {
+        setActiveFilter(null);
+        data = await get_listings();
+      } else {
+        setActiveFilter(filterCategoryId);
+        data = await filter_listings(filterCategoryId);
       }
+
+      setSearchResults(data);
+      if (data.length === 0) {
+        setToastMessage({
+          text: "No listings found in this category.",
+          type: "info",
+        });
+      } else {
+        setToastMessage(null); // Clear previous message if results exist
+      }
+    } catch (error) {
+      console.error("Error fetching listings:", error);
+      setToastMessage({ text: "Failed to load listings.", type: "error" });
+    } finally {
+      setLoading(false); // Hide loader after fetching
     }
   };
+
+  useEffect(() => {
+    if (!loading && toastMessage) {
+      showToast(toastMessage.text, toastMessage.type);
+      setToastMessage(null); // Reset message after showing
+    }
+  }, [loading, toastMessage]); // Runs when loading completes
+
   return (
     <div className="filter-container">
-      {filters.map((filter, index) => (
-        <div
-          className={`filter-item ${
-            activeFilter === filter.category ? "active" : ""
-          }`}
-          key={index}
-          onClick={() => handleFilterClick(filter.id)} // Set active filter and fetch data
-        >
-          <div className="filter-icon">{filter.icon}</div>
-          <p className="filter-label">{filter.label}</p>
-        </div>
-      ))}
+      {loading ? (
+        <Loader />
+      ) : (
+        filters.map((filter, index) => (
+          <div
+            className={`filter-item ${
+              activeFilter === filter.id ? "active" : ""
+            }`}
+            key={index}
+            onClick={() => handleFilterClick(filter.id)}
+          >
+            <div className="filter-icon">{filter.icon}</div>
+            <p className="filter-label">{filter.label}</p>
+          </div>
+        ))
+      )}
     </div>
   );
 };

@@ -19,12 +19,14 @@ function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [isTaxEnabled, setIsTaxEnabled] = useState(false);
+  const [globalLoading, setGlobalLoading] = useState(false);
 
   return (
     <>
       <ToastNotification />
       <AuthProvider>
         <Navbar
+          setGlobalLoading={setGlobalLoading}
           setSearchResults={setSearchResults}
           onOpenLogin={() => setShowLogin(true)}
         />
@@ -61,6 +63,7 @@ function App() {
               path="/listings/new"
               element={
                 <PrivateRoute
+                  setGlobalLoading={setGlobalLoading}
                   onOpenLogin={() => {
                     setShowLogin(true);
                   }}

@@ -1,97 +1,117 @@
-/* Container for the search input and button */
+/* Ensure navbar items are properly spaced */
+.container-fluid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+}
+
+/* Search container adjustments */
 .search-container {
   display: flex;
   align-items: center;
   width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
+  max-width: 400px; /* Adjusted for better mobile fit */
   position: relative;
 }
 
+/* Adjust search input */
 .search-input {
   width: 100%;
-  padding: 0.8rem 15rem 0.8rem 1rem;
-  font-size: 1rem;
+  padding: 0.6rem 2.5rem 0.6rem 1rem; /* Reduced padding */
+  font-size: 0.9rem; /* Smaller font on mobile */
   border-radius: 25px;
   border: 1px solid #ddd;
   outline: none;
   transition: border-color 0.3s ease;
 }
 
-.search-input:focus {
-  border-color: #fe424d;
-}
-
+/* Make the search button smaller */
 .search-btn {
   background-color: #fe424d;
   color: #fff;
   border-radius: 80%;
-  width: 40px;
-  height: 40px;
+  width: 35px;
+  height: 35px;
+  right: 5px;
   display: flex;
   justify-content: center;
   align-items: center;
   border: none;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  position: absolute; /* Adjusted spacing */
+}
+
+/* Adjust menu button placement */
+.menu-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 10px; /* Reduced padding */
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Dropdown Menu Container */
+.dropdown-menu {
   position: absolute;
-  right: 10px;
+  top: 100%; /* Position it right below the button */
+  right: 0; /* Align to the right */
+  width: 200px; /* Adjust width */
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 10px 0;
+  z-index: 1000;
 }
 
-.search-btn:hover {
-  background-color: #f76c6d;
+/* Dropdown Items */
+.dropdown-item {
+  padding: 10px 15px;
+  font-size: 14px;
+  color: #333;
+  text-decoration: none;
+  display: block;
+  transition: background 0.2s;
 }
 
-.search-btn svg {
-  font-size: 15px;
-  color: white;
+/* Hover Effect */
+.dropdown-item:hover {
+  background-color: #f8f9fa;
 }
 
-/* General navbar styles */
-.custom-navbar {
-  width: 100%;
-  max-width: 100%;
-  padding: 1rem 1.5rem;
-  height: auto;
-}
+/* Add a subtle divider between items */
+/* .dropdown-menu .dropdown-item:not(:last-child) {
+  border-bottom: 1px solid #eee;
+} */
 
-/* Make sure navbar content aligns properly */
-.navbar-collapse {
-  padding-top: 10px;
-}
-
-/* Ensure buttons align well */
-.navbar-nav .nav-link {
-  padding: 8px 12px;
-  font-weight: 500;
-}
-
-/* Responsive adjustments */
-@media (max-width: 992px) {
-  /* Tablet & Mobile */
-  .navbar-nav {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start !important; /* Align buttons to left */
-  }
-
-  .auth-buttons {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px; /* Adds spacing between buttons */
-  }
-
-  .navbar-toggler {
-    border: none; /* Removes default border */
-  }
-}
-
-@media (min-width: 993px) {
-  /* Large Screens */
-  .auth-buttons {
-    flex-direction: row; /* Keep buttons in a row on larger screens */
+/* Mobile specific adjustments */
+@media (max-width: 768px) {
+  .container-fluid {
+    flex-direction: row;
     align-items: center;
-    gap: 15px;
+  }
+
+  .search-container {
+    max-width: 60%; /* Adjust search bar width */
+  }
+
+  .search-input {
+    padding: 0.5rem 2rem 0.5rem 0.8rem; /* Better spacing */
+  }
+
+  .search-btn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .menu-btn {
+    padding: 4px 8px;
+  }
+  .dropdown-menu {
+    width: 180px; /* Slightly smaller on mobile */
   }
 }

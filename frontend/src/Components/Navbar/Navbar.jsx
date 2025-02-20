@@ -1,20 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { FaSearch, FaBars, FaUserCircle } from "react-icons/fa";
 import { FaHouse } from "react-icons/fa6";
-import { FaSearch } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
-import { search_listings } from "../../api";
 import { useAuth } from "../../contexts/useAuth";
 import Login from "../Users/Login";
 import SignUp from "../Users/SignUp";
 import "./Navbar.css";
 import { showToast } from "../ToastNotification/ToastNotification";
+import Loader from "../Loader/Loader";
 
 const Navbar = ({ setSearchResults }) => {
   const { logout_user, showLoginPopup, setShowLoginPopup, user } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
   const [searchDestination, setSearchDestination] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
+  const menuRef = useRef(null);
   const nav = useNavigate();
 
   const handleLogout = async () => {
@@ -31,27 +34,31 @@ const Navbar = ({ setSearchResults }) => {
     }
   }, [showLoginPopup]);
 
-  // const handleSearchChange = (e) => {
-  //   setSearchDestination(e.target.value);
-  // };
-
   const handleSearch = async () => {
     if (searchDestination.trim() === "") {
       setSearchResults([]);
       return;
     }
 
+    setLoading(true);
+    const startTime = Date.now();
+
     try {
       const response = await search_listings(searchDestination);
+      const fetchTime = Date.now() - startTime;
+
+      setTimeout(() => {
+        setSearchResults(response);
+        setLoading(false);
+      }, Math.max(1000 - fetchTime, 0));
 
       if (response.length === 0) {
         showToast("No listings found for your search.", "info");
       }
-
-      setSearchResults(response);
     } catch (error) {
       console.error("Error fetching search results:", error);
       showToast("Failed to fetch search results.", "error");
+      setLoading(false);
     }
   };
 
@@ -66,105 +73,122 @@ const Navbar = ({ setSearchResults }) => {
     setSearchDestination(value);
 
     if (value.trim() === "") {
-      setSearchResults([]); // Reset listings when search bar is cleared
+      setSearchResults([]);
     }
   };
 
-  return (
-    <nav
-      className="navbar navbar-expand-lg bg-white border-bottom sticky-top custom-navbar"
-      // style={{
-      //   height: "5rem",
-      //   fontSize: "1rem",
-      //   backgroundColor: "white",
-      // }}
-    >
-      <div className="container-fluid">
-        <Link className="navbar-brand" to="/">
-          <FaHouse
-            style={{
-              color: "#fe424d",
-              fontSize: "2rem",
-            }}
-          />
-        </Link>
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarSupportedContent"
-          aria-controls="navbarSupportedContent"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span className="navbar-toggler-icon"></span>
-        </button>
-        <div
-          className="collapse navbar-collapse w-100 "
-          id="navbarSupportedContent"
-        >
-          {/* <div className="navbar-nav">
-            <Link className="nav-link" to="/">
-              Explore
-            </Link>
-          </div> */}
-          <div className="navbar-nav ms-auto">
-            <div className="d-flex search-container">
-              <input
-                className="search-input"
-                type="text"
-                placeholder="Search destinations"
-                aria-label="Search"
-                value={searchDestination}
-                onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
-              />
-              <button
-                className="search-btn"
-                type="button"
-                onClick={handleSearch}
-              >
-                <FaSearch />
-              </button>
-            </div>
-          </div>
-          <div className="navbar-nav ms-auto auth-buttons d-flex">
-            <Link className="nav-link" to="/listings/new">
-              Airbnb your home
-            </Link>
-            {user ? (
-              <button className="nav-link" onClick={handleLogout}>
-                <b>Log out</b>
-              </button>
-            ) : (
-              <>
-                <div className="auth-buttons d-flex flex-column flex-lg-row">
-                  {/* Open SignUp modal instead of redirecting */}
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!menuRef.current?.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, []);
 
-                  <button
-                    className="nav-link"
-                    onClick={() => setIsSignUpOpen(true)}
-                  >
-                    <b>Sign Up</b>
-                  </button>
-                  {/* Open Bootstrap-styled login modal */}
-                  <button
-                    className="nav-link"
-                    onClick={() => setIsLoginOpen(true)}
-                  >
-                    <b>Log in</b>
-                  </button>
-                </div>
-              </>
+  useEffect(() => {
+    setLoading(true);
+    const startTime = Date.now();
+
+    const timer = setTimeout(() => {
+      const fetchTime = Date.now() - startTime;
+      setLoading(false);
+    }, Math.max(1000 - (Date.now() - startTime), 0));
+
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
+  return (
+    <>
+      {loading && <Loader />}
+
+      <nav className="navbar navbar-expand-lg bg-white border-bottom sticky-top custom-navbar">
+        <div className="container-fluid d-flex align-items-center">
+          {/* Left Side: Icon */}
+          <Link className="navbar-brand me-auto" to="/">
+            <FaHouse
+              style={{
+                color: "#fe424d",
+                fontSize: "2rem",
+              }}
+              className="home-icon"
+            />
+          </Link>
+
+          {/* Center: Search Bar */}
+          <div className="search-container mx-auto">
+            <input
+              className="search-input"
+              type="text"
+              placeholder="Search destinations"
+              aria-label="Search"
+              value={searchDestination}
+              onChange={handleInputChange}
+              onKeyPress={handleKeyPress}
+            />
+            <button className="search-btn" type="button" onClick={handleSearch}>
+              <FaSearch />
+            </button>
+          </div>
+
+          {/* Right Side: Dropdown Menu */}
+          <div className="position-relative ms-auto" ref={menuRef}>
+            <button
+              className="menu-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenuOpen((prev) => !prev);
+              }}
+            >
+              <FaBars className="text-secondary me-2" size={18} />
+              <FaUserCircle className="text-secondary" size={24} />
+            </button>
+
+            {menuOpen && (
+              <div className="dropdown-menu show position-absolute end-0 mt-2 p-2 shadow-sm border rounded">
+                {user ? (
+                  <>
+                    <Link className="dropdown-item" to="/listings/new">
+                      List your home
+                    </Link>
+                    <Link className="dropdown-item" to="">
+                      Saved Listings
+                    </Link>
+
+                    <button className="dropdown-item" onClick={handleLogout}>
+                      Log out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link className="dropdown-item" to="/listings/new">
+                      List your home
+                    </Link>
+
+                    <button
+                      className="dropdown-item"
+                      onClick={() => setIsSignUpOpen(true)}
+                    >
+                      Sign Up
+                    </button>
+                    <button
+                      className="dropdown-item"
+                      onClick={() => setIsLoginOpen(true)}
+                    >
+                      Log in
+                    </button>
+                  </>
+                )}
+              </div>
             )}
           </div>
         </div>
-      </div>
-      {/* Show Bootstrap-styled Login Modal */}
-      {isLoginOpen && <Login onClose={() => setIsLoginOpen(false)} />}
-      {/* Show SignUp Modal */}
-      {isSignUpOpen && <SignUp onClose={() => setIsSignUpOpen(false)} />}
-    </nav>
+
+        {isLoginOpen && <Login onClose={() => setIsLoginOpen(false)} />}
+        {isSignUpOpen && <SignUp onClose={() => setIsSignUpOpen(false)} />}
+      </nav>
+    </>
   );
 };
 

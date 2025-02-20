@@ -2,8 +2,6 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { is_authenticated, login, logout } from "../api";
 import { useNavigate } from "react-router-dom";
 import { showToast } from "../Components/ToastNotification/ToastNotification";
-import Loader from "../Components/Loader/Loader";
-
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -29,7 +27,10 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
       setUser(null);
     } finally {
-      setLoading(false);
+      // Delay hiding the loader by 2 seconds (2000ms)
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
     }
   };
 
@@ -57,17 +58,22 @@ export const AuthProvider = ({ children }) => {
     try {
       const success = await logout();
       if (success) {
+        setLoading(true); // ✅ Start loader first
         setIsAuthenticated(false);
         setUser(null);
-        showToast("Logged out successfully!", "success"); // ✅ Logout toast
-        nav("/");
+  
+        await get_authenticated(); // ✅ Wait for authentication state to update
+  
+        showToast("Logged out successfully!", "success"); // ✅ Show toast naturally after loading finishes
+        nav("/"); // ✅ Redirect after logout process completes
       } else {
-        showToast("Logout failed. Try again!", "error"); // ❌ Error toast
+        showToast("Logout failed. Try again!", "error");
       }
     } catch (error) {
-      showToast("An error occurred while logging out.", "error"); // ❌ Error toast
+      showToast("An error occurred while logging out.", "error");
     }
   };
+  
 
   useEffect(() => {
     get_authenticated();
@@ -87,13 +93,7 @@ export const AuthProvider = ({ children }) => {
         user,
       }}
     >
-      {loading ? (
-        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-white bg-opacity-50 backdrop-blur-md">
-          <Loader type="clip" size={50} color="#36D7B7" />
-        </div>
-      ) : (
-        children
-      )}
+      {children}
     </AuthContext.Provider>
   );
 };
