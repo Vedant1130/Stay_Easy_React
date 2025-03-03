@@ -12,8 +12,8 @@ const TaxToggle = ({ isTaxEnabled, setIsTaxEnabled }) => {
     }
   };
   return (
-    <div className="tax-toggle d-flex align-items-center justify-content-between">
-      <label className="form-check-label" htmlFor="taxSwitch">
+    <div className="tax-toggle  d-flex align-items-center justify-content-between">
+      <label className="form-check-label mx-2 text-left" htmlFor="taxSwitch">
         Display total after taxes
       </label>
       <div className="form-check form-switch">

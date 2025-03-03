@@ -9,15 +9,14 @@ import {
   FaSnowflake,
   FaUmbrellaBeach,
 } from "react-icons/fa6";
-import "./Filter.css";
 import { filter_listings, get_listings } from "../../api";
 import { showToast } from "../ToastNotification/ToastNotification";
-import Loader from "../Loader/Loader"; // Import Loader
+import Loader from "../Loader/Loader";
 
 const Filter = ({ setSearchResults }) => {
   const [activeFilter, setActiveFilter] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [toastMessage, setToastMessage] = useState(null); // Store toast message
+  const [toastMessage, setToastMessage] = useState(null);
 
   const filters = [
     { id: 1, icon: <FaMountainCity />, label: "Iconic Cities" },
@@ -31,8 +30,7 @@ const Filter = ({ setSearchResults }) => {
   ];
 
   const handleFilterClick = async (filterCategoryId) => {
-    setLoading(true); // Show loader
-
+    setLoading(true);
     try {
       let data;
       if (activeFilter === filterCategoryId) {
@@ -50,38 +48,43 @@ const Filter = ({ setSearchResults }) => {
           type: "info",
         });
       } else {
-        setToastMessage(null); // Clear previous message if results exist
+        setToastMessage(null);
       }
     } catch (error) {
       console.error("Error fetching listings:", error);
       setToastMessage({ text: "Failed to load listings.", type: "error" });
     } finally {
-      setLoading(false); // Hide loader after fetching
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     if (!loading && toastMessage) {
       showToast(toastMessage.text, toastMessage.type);
-      setToastMessage(null); // Reset message after showing
+      setToastMessage(null);
     }
-  }, [loading, toastMessage]); // Runs when loading completes
+  }, [loading, toastMessage]);
 
   return (
-    <div className="filter-container">
+    <div
+      className="flex space-x-2 overflow-x-auto px-6 py-4 scrollbar-hide scroll-smooth snap-x snap-mandatory"
+      style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+    >
       {loading ? (
         <Loader />
       ) : (
         filters.map((filter, index) => (
           <div
-            className={`filter-item ${
-              activeFilter === filter.id ? "active" : ""
-            }`}
+            className={`flex flex-col items-center cursor-pointer px-4 py-2 flex-none transition-all duration-300 snap-center ${
+              activeFilter === filter.id
+                ? "text-black border-b-2 border-black"
+                : "text-gray-500 border-b-2 border-transparent"
+            } hover:text-black`}
             key={index}
             onClick={() => handleFilterClick(filter.id)}
           >
-            <div className="filter-icon">{filter.icon}</div>
-            <p className="filter-label">{filter.label}</p>
+            <div className="text-3xl">{filter.icon}</div>
+            <p className="text-xs mt-1 font-medium">{filter.label}</p>
           </div>
         ))
       )}

@@ -1,46 +1,26 @@
 import { useAuth } from "../contexts/useAuth";
-import { useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
-import Login from "./Users/Login";
-import { showToast } from "./ToastNotification/ToastNotification";
+import { Navigate, useLocation } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { showToast } from "./ToastNotification/ToastNotification"; // Adjust path if needed
 
-const PrivateRoute = ({ children, onOpenLogin }) => {
-  const { isAuthenticated, loading, setLastAttemptedPage, lastAttemptedPage } =
-    useAuth();
-  const [showLogin, setShowLogin] = useState(false);
-  const toastShownRef = useRef(false);
-
-  const navigate = useNavigate();
+const PrivateRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
+  const toastShown = useRef(false); // Prevents multiple toasts
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      if (!lastAttemptedPage) {
-        // If lastAttemptedPage is null, it means the user JUST logged out, so don't show another toast
-        setLastAttemptedPage(children.props.path); // Store attempted page for later
-        return;
-      }
-
-      if (!toastShownRef.current) {
-        showToast("Please log in to access this page", "warning");
-        toastShownRef.current = true;
-      }
-
-      setShowLogin(true);
+    if (!loading && !isAuthenticated && !toastShown.current) {
+      showToast("You must be logged in to access this page.", "warning");
+      toastShown.current = true; // Mark as shown to prevent duplicates
     }
-  }, [isAuthenticated, loading]);
-  return (
-    <>
-      {showLogin && (
-        <Login
-          onClose={() => setShowLogin(false)}
-          onLoginSuccess={() => {
-            setShowLogin(false);
-            toastShownRef.current = false;
-          }}
-        />
-      )}
-      {isAuthenticated ? children : null}
-    </>
+  }, [loading, isAuthenticated]);
+
+  if (loading) return null; // Wait for authentication check
+
+  return isAuthenticated ? (
+    children
+  ) : (
+    <Navigate to="/login" state={{ from: location }} replace />
   );
 };
 

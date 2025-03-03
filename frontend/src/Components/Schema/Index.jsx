@@ -3,7 +3,7 @@ import * as Yup from "yup";
 // const passwordRules = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
 export const loginSchema = Yup.object({
   username: Yup.string().required("Kindly enter your Username!!"),
-  password: Yup.string().required("Kindly enter valid Password!!"),
+  password: Yup.string().required("Kindly enter your Password!!"),
 });
 
 export const signupSchema = Yup.object({

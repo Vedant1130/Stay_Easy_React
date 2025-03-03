@@ -47,6 +47,7 @@ export const AuthProvider = ({ children }) => {
       await get_authenticated(); // ✅ Only call if login succeeds
       setIsAuthenticated(true);
       showToast("Login successful!", "success");
+      nav("/")
       return true;
     } catch (error) {
       showToast("Something went wrong. Try again!", "error");
