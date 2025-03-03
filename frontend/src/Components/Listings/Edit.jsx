@@ -40,7 +40,15 @@ const Edit = () => {
 
   const handleEdit = async () => {
     try {
-      const success = await update_listing(id, values);
+      const success = await update_listing(
+        id,
+        values.title,
+        values.description,
+        values.image,
+        values.price,
+        values.country,
+        values.location
+      );
       if (success) {
         showToast("Listing updated successfully!", "success");
         nav("/");
