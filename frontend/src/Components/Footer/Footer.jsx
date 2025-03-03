@@ -1,32 +1,25 @@
-import { FaGlobe } from "react-icons/fa";
-
-import "./Footer.css";
-
 const Footer = () => {
   return (
-    <footer className="footer bg-light p-3">
-      <div className="container d-flex flex-column flex-md-row justify-content-between align-items-center">
+    <footer className="bg-gray-100 p-3">
+      <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
         {/* Left Side */}
-        <div className="footer-left text-muted">
-          © {new Date().getFullYear()} Stay Easy
-         
+        <div className="text-gray-600">
+          © {new Date().getFullYear()}  Stay Easy
         </div>
 
         {/* Right Side */}
-        <div className="footer-right d-flex align-items-center text-muted">
-           <a href="#" className="text-decoration-none mx-2">
+        <div className="flex items-center text-gray-600">
+          <a href="#" className="mx-2 no-underline hover:underline">
             Privacy
           </a>
           ·
-          <a href="#" className="text-decoration-none mx-2">
+          <a href="#" className="mx-2 no-underline hover:underline">
             Terms
           </a>
           ·
-          <a href="#" className="text-decoration-none mx-2">
+          <a href="#" className="mx-2 no-underline hover:underline">
             Sitemap
           </a>
-          
-         
         </div>
       </div>
     </footer>

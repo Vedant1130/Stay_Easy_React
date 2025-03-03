@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from Reviews.models import Review
 
 class Category(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -16,6 +17,7 @@ class Listing(models.Model):
     country = models.CharField(max_length=255)
     owner = models.ForeignKey(User, on_delete=models.CASCADE,related_name='listings')
     category = models.ForeignKey(Category,on_delete=models.SET_NULL,null=True,related_name='listings')
+    reviews = models.ManyToManyField(Review, related_name='listing_reviews', blank=True) 
     
     def __str__(self):
         return self.title
