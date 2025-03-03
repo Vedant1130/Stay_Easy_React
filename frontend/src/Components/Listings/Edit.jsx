@@ -3,8 +3,7 @@ import sampleListings from "./data";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFormik } from "formik";
 import { editSchema } from "../Schema/Index";
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { show_listings, update_listing } from "../../api";
 import { showToast } from "../ToastNotification/ToastNotification";
 
@@ -37,23 +36,11 @@ const Edit = () => {
     enableReinitialize: true,
     initialValues: initialValues,
     validationSchema: editSchema,
-    // onSubmit: () => {
-    //   nav("/");
-    // },
   });
 
   const handleEdit = async () => {
     try {
-      const success = await update_listing(
-        id,
-        values.title,
-        values.description,
-        values.image,
-        values.price,
-        values.country,
-        values.location
-      );
-
+      const success = await update_listing(id, values);
       if (success) {
         showToast("Listing updated successfully!", "success");
         nav("/");
@@ -66,143 +53,121 @@ const Edit = () => {
   };
 
   return (
-    <>
-      <div className="row mt-3">
-        <div className="col-8 offset-2">
-          <h3>Edit your listing</h3>
-          <form>
-            <div className="mb-3">
-              <label htmlFor="title" className="form-label">
-                Title
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 md:p-8">
+      <h3 className="text-3xl font-bold mb-6 text-center mt-6">
+        Edit your listing
+      </h3>
+      <form>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="title" className="block font-semibold mb-1">
+              Title
+            </label>
+            <input
+              name="title"
+              value={values.title}
+              type="text"
+              className="w-full p-3 bg-gray-200 rounded-lg text-lg focus:outline-none"
+              onChange={handleChange}
+            />
+            {errors.title && (
+              <p className="text-red-500 text-sm">{errors.title}</p>
+            )}
+          </div>
+          <div>
+            <label htmlFor="description" className="block font-semibold mb-1">
+              Description
+            </label>
+            <textarea
+              name="description"
+              value={values.description}
+              className="w-full p-3 bg-gray-200 rounded-lg text-lg focus:outline-none h-32"
+              onChange={handleChange}
+            ></textarea>
+            {errors.description && (
+              <p className="text-red-500 text-sm">{errors.description}</p>
+            )}
+          </div>
+          <div>
+            <span className="font-semibold">Original Image Uploaded:</span>
+            <img
+              src={values.image}
+              className="mt-2 w-48 h-48  max-w-xs object-cover rounded-lg"
+              alt="Uploaded Preview"
+            />
+          </div>
+          <div>
+            <label htmlFor="image" className="block font-semibold mb-1">
+              Upload New Image
+            </label>
+            <input
+              onChange={(event) =>
+                setFieldValue("image", event.target.files[0])
+              }
+              name="image"
+              type="file"
+              className="w-full p-3 bg-gray-200 rounded-lg text-lg focus:outline-none"
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="price" className="block font-semibold mb-1">
+                Price
               </label>
               <input
-                name="title"
-                value={values.title}
-                type="text"
-                className="form-control"
+                name="price"
+                value={values.price}
+                type="number"
+                className="w-full p-3 bg-gray-200 rounded-lg text-lg focus:outline-none"
                 onChange={handleChange}
               />
-              {
-                <p className="form-error" style={{ color: "red" }}>
-                  {errors.title}
-                </p>
-              }
+              {errors.price && (
+                <p className="text-red-500 text-sm">{errors.price}</p>
+              )}
             </div>
-            <div className="mb-3">
-              <label htmlFor="description" className="form-label">
-                Description
-              </label>
-              <textarea
-                name="description"
-                value={values.description}
-                type="text"
-                className="form-control"
-                onChange={handleChange}
-              ></textarea>
-              {
-                <p className="form-error" style={{ color: "red" }}>
-                  {errors.description}
-                </p>
-              }
-            </div>
-            <div className="mb-3 d-flex align-items-center flex-column flex-md-row text-center">
-              Original Image Uploaded:
-              <img
-                src={values.image}
-                className="img-fluid mt-2 mt-md-0 ms-md-3"
-                style={{
-                  width: "200px",
-                  height: "200px",
-                }}
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="image" className="form-label">
-                Upload New Image
+            <div>
+              <label htmlFor="country" className="block font-semibold mb-1">
+                Country
               </label>
               <input
-                onChange={(event) =>
-                  setFieldValue("image", event.target.files[0])
-                }
-                name="image"
-                type="file"
-                className="form-control"
-              />
-            </div>
-            <div className="row">
-              <div className="mb-3 col-md-4">
-                <label htmlFor="price" className="form-label">
-                  Price
-                </label>
-                <input
-                  name="price"
-                  value={values.price}
-                  type="number"
-                  className="form-control"
-                  onChange={handleChange}
-                />
-                {
-                  <p className="form-error" style={{ color: "red" }}>
-                    {errors.price}
-                  </p>
-                }
-              </div>
-              <div className="mb-3 col-md-8">
-                <label htmlFor="country" className="form-label">
-                  Country
-                </label>
-                <input
-                  name="country"
-                  value={values.country}
-                  type="text"
-                  className="form-control"
-                  onChange={handleChange}
-                />
-                {
-                  <p className="form-error" style={{ color: "red" }}>
-                    {errors.country}
-                  </p>
-                }
-              </div>
-            </div>
-            <div className="mb-3">
-              <label htmlFor="location" className="form-label">
-                Location
-              </label>
-              <input
-                name="location"
-                value={values.location}
+                name="country"
+                value={values.country}
                 type="text"
-                className="form-control"
+                className="w-full p-3 bg-gray-200 rounded-lg text-lg focus:outline-none"
                 onChange={handleChange}
               />
-              {
-                <p className="form-error" style={{ color: "red" }}>
-                  {errors.location}
-                </p>
-              }
+              {errors.country && (
+                <p className="text-red-500 text-sm">{errors.country}</p>
+              )}
             </div>
+          </div>
+          <div>
+            <label htmlFor="location" className="block font-semibold mb-1">
+              Location
+            </label>
+            <input
+              name="location"
+              value={values.location}
+              type="text"
+              className="w-full p-3 bg-gray-200 rounded-lg text-lg focus:outline-none"
+              onChange={handleChange}
+            />
+            {errors.location && (
+              <p className="text-red-500 text-sm">{errors.location}</p>
+            )}
+          </div>
+          <div className="flex justify-center">
             <button
-              onClick={() => {
-                handleEdit({
-                  id,
-                  title: values.title,
-                  description: values.description,
-                  image: values.image,
-                  price: values.price,
-                  country: values.country,
-                  location: values.location,
-                });
-              }}
+              onClick={handleEdit}
               type="button"
-              className="btn btn-dark edit-btn mb-3"
+              className="w-36 mt-4 bg-red-500 text-white py-3 rounded-lg text-lg font-semibold shadow-md hover:bg-red-600 transition"
             >
               Edit
             </button>
-          </form>
+          </div>
         </div>
-      </div>
-    </>
+      </form>
+    </div>
   );
 };
 

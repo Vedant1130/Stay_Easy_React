@@ -1,14 +1,17 @@
 import React from "react";
 import { useNavigate, useParams } from "react-router";
 import { Link } from "react-router";
-import "./ShowListing.css";
 import { useState, useEffect } from "react";
 import { delete_listing, show_listings } from "../../api";
 import { useAuth } from "../../contexts/useAuth";
 import { showToast } from "../ToastNotification/ToastNotification";
+import DeletePopup from "../Popup/deletePopup";
+import { FaTrash } from "react-icons/fa";
+
 const ShowListing = () => {
   const { id } = useParams();
   const [listing, setListing] = useState([]);
+  const [open, setOpen] = useState(false);
   const { user } = useAuth();
   const nav = useNavigate();
 
@@ -37,40 +40,66 @@ const ShowListing = () => {
 
   return (
     <>
-      <div className="row mt-3">
-        <div className="col-8 offset-3">
-          <h3>{listing.title}</h3>
-        </div>
-        <div className="card col-6 offset-3 show-card listing-card">
+      <div className="mt-3 flex flex-col items-center">
+        <h3 className="text-xl font-semibold">{listing.title}</h3>
+        <div className="w-3/5 bg-white shadow-md rounded-lg overflow-hidden mt-4">
           <img
-            src={listing.image} // Ensure listing.image is the URL, if not use listing.image.url
-            className="card-img-top show-img"
+            src={listing.image}
+            className="w-full h-60 object-cover"
             alt="listing_image"
           />
-          <div className="card-body">
-            {/* <p className="card-text">Owned by:{listing.owner} </p> */}
-            <p className="card-text">{listing.description}</p>
-            <p className="card-text">&#8377; {listing.price}</p>
-            <p className="card-text">{listing.location}</p>{" "}
-            {/* Assuming location is a valid field */}
+          <div className="p-4">
+            <p className="text-gray-700">{listing.description}</p>
+            <p className="text-lg font-semibold text-gray-900">
+              &#8377; {listing.price}
+            </p>
+            <p className="text-sm text-gray-600">{listing.location}</p>
           </div>
         </div>
 
-        {/* Show buttons only if the logged-in user is the owner */}
         {user && listing.owner === user.id && (
-          <div className="btns mb-3">
+          <div className="flex gap-4 mt-4">
             <Link
-              className="btn btn-dark offset-3 edit-btn"
+              className="bg-colar-red text-white px-4 py-2 rounded-md hover:bg-red-700"
               to={`/listings/edit/${listing.id}`}
             >
               Edit
             </Link>
-            <button onClick={handleDelete} className="btn btn-dark delete-btn">
+            <button
+              className="bg-colar-red text-white px-4 py-2 rounded-md hover:bg-red-700"
+              onClick={() => setOpen(true)}
+            >
               Delete
             </button>
           </div>
         )}
       </div>
+
+      <DeletePopup open={open} onClose={() => setOpen(false)}>
+        <div className="text-center w-56">
+          <FaTrash size={56} className="mx-auto text-red-500" />
+          <div className="mx-auto my-4 w-48">
+            <h3 className="text-lg font-black text-gray-800">Confirm Delete</h3>
+            <p className="text-sm text-gray-500">
+              Are you sure you want to delete this Listing?
+            </p>
+          </div>
+          <div className="flex gap-4">
+            <button
+              onClick={handleDelete}
+              className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 w-full"
+            >
+              Delete
+            </button>
+            <button
+              className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 w-full"
+              onClick={() => setOpen(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </DeletePopup>
     </>
   );
 };

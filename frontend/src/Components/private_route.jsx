@@ -2,6 +2,7 @@ import { useAuth } from "../contexts/useAuth";
 import { Navigate, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import { showToast } from "./ToastNotification/ToastNotification"; // Adjust path if needed
+import Loader from "./Loader/Loader";
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -15,7 +16,7 @@ const PrivateRoute = ({ children }) => {
     }
   }, [loading, isAuthenticated]);
 
-  if (loading) return null; // Wait for authentication check
+  if (loading) return <Loader />; // Wait for authentication check
 
   return isAuthenticated ? (
     children

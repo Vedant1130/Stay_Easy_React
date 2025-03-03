@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { is_authenticated, login, logout } from "../api";
 import { useNavigate } from "react-router-dom";
 import { showToast } from "../Components/ToastNotification/ToastNotification";
+import Loader from "../Components/Loader/Loader";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -47,7 +48,7 @@ export const AuthProvider = ({ children }) => {
       await get_authenticated(); // ✅ Only call if login succeeds
       setIsAuthenticated(true);
       showToast("Login successful!", "success");
-      nav("/")
+      nav("/");
       return true;
     } catch (error) {
       showToast("Something went wrong. Try again!", "error");
@@ -62,9 +63,9 @@ export const AuthProvider = ({ children }) => {
         setLoading(true); // ✅ Start loader first
         setIsAuthenticated(false);
         setUser(null);
-  
+
         await get_authenticated(); // ✅ Wait for authentication state to update
-  
+
         showToast("Logged out successfully!", "success"); // ✅ Show toast naturally after loading finishes
         nav("/"); // ✅ Redirect after logout process completes
       } else {
@@ -74,7 +75,6 @@ export const AuthProvider = ({ children }) => {
       showToast("An error occurred while logging out.", "error");
     }
   };
-  
 
   useEffect(() => {
     get_authenticated();
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }) => {
         user,
       }}
     >
-      {children}
+      {loading ? <Loader /> : children}
     </AuthContext.Provider>
   );
 };
