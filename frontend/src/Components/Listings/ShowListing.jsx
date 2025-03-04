@@ -7,6 +7,7 @@ import { useAuth } from "../../contexts/useAuth";
 import { showToast } from "../ToastNotification/ToastNotification";
 import DeletePopup from "../Popup/deletePopup";
 import { FaTrash } from "react-icons/fa";
+import Review from "../Review/Review";
 
 const ShowListing = () => {
   const { id } = useParams();
@@ -100,6 +101,8 @@ const ShowListing = () => {
           </div>
         </div>
       </DeletePopup>
+      <hr />
+      <Review />
     </>
   );
 };
