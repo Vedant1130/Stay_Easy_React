@@ -14,7 +14,7 @@ export const signupSchema = Yup.object({
 
 export const newSchema = Yup.object({
   title: Yup.string().required("Kindly Add Title"),
-  description: Yup.string().max(500).required("Kindly Add Description"),
+  description: Yup.string().max(300).required("Kindly Add Description"),
   image: Yup.mixed()
     .required("Image is required")
     .test("fileType", "Unsupported file format", (value) => {
@@ -31,7 +31,7 @@ export const newSchema = Yup.object({
 
 export const editSchema = Yup.object({
   title: Yup.string().required("Kindly Add Title"),
-  description: Yup.string().required("Kindly Add Description"),
+  description: Yup.string().max(300).required("Kindly Add Description"),
   image: Yup.mixed()
     .test(
       "fileType",
@@ -41,7 +41,7 @@ export const editSchema = Yup.object({
         return value && ["image/jpeg", "image/png"].includes(value.type);
       }
     )
-    .test("fileSize", "File too large (max 2MB)", (value) => {
+    .test("fileSize", "File too large (max 5MB)", (value) => {
       if (!value) return true; // Allow empty image field
       return value && value.size <= 5 * 1024 * 1024; // Max 2MB
     }),

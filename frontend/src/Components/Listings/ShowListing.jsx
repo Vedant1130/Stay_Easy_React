@@ -40,42 +40,69 @@ const ShowListing = () => {
   };
 
   return (
-    <>
-      <div className="mt-3 flex flex-col items-center">
-        <h3 className="text-xl font-semibold">{listing.title}</h3>
-        <div className="w-3/5 bg-white shadow-md rounded-lg overflow-hidden mt-4">
+    <div className="container mx-auto mt-8 px-4">
+      <div className="grid grid-cols-12 gap-6">
+        {/* Left: Image Section */}
+        <div className="col-span-4">
           <img
             src={listing.image}
-            className="w-full h-60 object-cover"
+            className="w-full h-96 object-cover rounded-lg shadow-md"
             alt="listing_image"
           />
-          <div className="p-4">
-            <p className="text-gray-700">{listing.description}</p>
-            <p className="text-lg font-semibold text-gray-900">
-              &#8377; {listing.price}
-            </p>
-            <p className="text-sm text-gray-600">{listing.location}</p>
-          </div>
         </div>
 
-        {user && listing.owner === user.id && (
-          <div className="flex gap-4 mt-4">
-            <Link
-              className="bg-colar-red text-white px-4 py-2 rounded-md hover:bg-red-700"
-              to={`/listings/edit/${listing.id}`}
-            >
-              Edit
-            </Link>
-            <button
-              className="bg-colar-red text-white px-4 py-2 rounded-md hover:bg-red-700"
-              onClick={() => setOpen(true)}
-            >
-              Delete
-            </button>
-          </div>
-        )}
-      </div>
+        {/* Middle: Details Section */}
+        <div className="col-span-5 flex flex-col justify-center">
+          <h3 className="text-2xl font-bold mb-4">{listing.title}</h3>
+          <p className="text-gray-700 mt-2">{listing.description}</p>
+          <p className="text-lg font-semibold text-gray-900 mt-4">
+            &#8377; {listing.price}
+          </p>
+          <p className="text-sm text-gray-600">{listing.location}</p>
 
+          {user && listing.owner === user.id && (
+            <div className="flex gap-4 mt-4">
+              <Link
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                to={`/listings/edit/${listing.id}`}
+              >
+                Edit
+              </Link>
+              <button
+                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+                onClick={() => setOpen(true)}
+              >
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Right: Added Review Section */}
+        <div className="col-span-3">
+          <h3 className="text-lg font-semibold mb-2">Recent Reviews</h3>
+          <div className="bg-gray-100 p-3 rounded-md shadow-sm mb-2">
+            <p className="font-semibold">John Doe</p>
+            <p className="text-sm text-gray-600">
+              "Great place, very clean and well maintained!"
+            </p>
+          </div>
+          <div className="bg-gray-100 p-3 rounded-md shadow-sm mb-2">
+            <p className="font-semibold">Alice Smith</p>
+            <p className="text-sm text-gray-600">
+              "Loved the location and amenities. Would visit again!"
+            </p>
+          </div>
+          <div className="bg-gray-100 p-3 rounded-md shadow-sm">
+            <p className="font-semibold">Michael Brown</p>
+            <p className="text-sm text-gray-600">
+              "Host was very friendly and helpful!"
+            </p>
+          </div>
+        </div>
+      </div>
+      <hr className="my-6" />
+      <Review /> {/* Keeping original reviews at old place */}
       <DeletePopup open={open} onClose={() => setOpen(false)}>
         <div className="text-center w-56">
           <FaTrash size={56} className="mx-auto text-red-500" />
@@ -101,9 +128,7 @@ const ShowListing = () => {
           </div>
         </div>
       </DeletePopup>
-      <hr />
-      <Review />
-    </>
+    </div>
   );
 };
 

@@ -1,16 +1,14 @@
 import React from "react";
 import { FrownOutlined, MehOutlined, SmileOutlined } from "@ant-design/icons";
 import { Rate } from "antd";
+import AddReview from "./AddReview";
 
 const iconColor = "#fe424d"; // Yellow for full stars
 const emptyColor = "#d9d9d9"; // Gray for empty stars
 
 const Review = () => {
-  // Mock review data (replace with real API data)
   const reviewCounts = { 5: 100, 4: 7, 3: 0, 2: 0, 1: 0 };
   const totalReviews = Object.values(reviewCounts).reduce((a, b) => a + b, 0);
-
-  // Calculate average rating
   const averageRating = totalReviews
     ? Object.entries(reviewCounts).reduce(
         (sum, [rating, count]) => sum + rating * count,
@@ -18,7 +16,6 @@ const Review = () => {
       ) / totalReviews
     : 0;
 
-  // Function to get custom icons for stars
   const getCustomIcon = (index) => {
     const fullStars = Math.floor(averageRating);
     const isHalf = averageRating - fullStars >= 0.5 && index === fullStars;
@@ -74,42 +71,44 @@ const Review = () => {
   };
 
   return (
-    <div className="bg-white text-black p-6 rounded-lg w-full max-w-sm mx-auto text-center">
-      {/* Average Rating */}
-      <h2 className="text-4xl font-bold">{averageRating.toFixed(1)}</h2>
+    <div className="flex flex-col md:flex-row justify-between items-start gap-6 p-6">
+      {/* Left Side: Review Summary */}
+      <div className="w-full md:w-1/2">
+        <h2 className="text-4xl font-bold">{averageRating.toFixed(1)}</h2>
+        <div className="flex justify-start my-2 text-3xl">
+          <Rate
+            value={averageRating}
+            disabled
+            allowHalf
+            character={({ index }) => getCustomIcon(index)}
+          />
+        </div>
 
-      {/* Star Rating with Custom Icons */}
-      <div className="flex justify-center my-2 text-3xl">
-        <Rate
-          value={averageRating}
-          disabled
-          allowHalf
-          character={({ index }) => getCustomIcon(index)}
-        />
-      </div>
-
-      {/* Review Summary Bars */}
-      <div className="space-y-2 mt-3 text-left">
-        {[5, 4, 3, 2, 1].map((rating) => (
-          <div key={rating} className="flex items-center space-x-2">
-            <span className="w-6 text-right">{rating}</span>
-            <div className="w-full bg-gray-300 h-2 rounded-lg">
-              <div
-                className="h-full rounded-lg"
-                style={{
-                  width: totalReviews
-                    ? `${(reviewCounts[rating] / totalReviews) * 100}%`
-                    : "0%",
-                  backgroundColor: iconColor,
-                }}
-              ></div>
+        <div className="space-y-2 mt-3 text-left">
+          {[5, 4, 3, 2, 1].map((rating) => (
+            <div key={rating} className="flex items-center space-x-2">
+              <span className="w-6 text-right">{rating}</span>
+              <div className="w-3/4 bg-gray-300 h-1 rounded-lg">
+                <div
+                  className="h-full rounded-lg"
+                  style={{
+                    width: totalReviews
+                      ? `${(reviewCounts[rating] / totalReviews) * 100}%`
+                      : "0%",
+                    backgroundColor: iconColor,
+                  }}
+                ></div>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+        <p className="text-gray-600 mt-2">{totalReviews} reviews</p>
       </div>
 
-      {/* Total Reviews */}
-      <p className="text-gray-600 text-center mt-2">{totalReviews} reviews</p>
+      {/* Right Side: Add Review Form */}
+      <div className="w-full md:w-full">
+        <AddReview />
+      </div>
     </div>
   );
 };
