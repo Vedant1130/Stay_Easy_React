@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from .models import Listing,Category
+from .models import Listing, Category
 from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
-
+from Reviews.serializer import ReviewSerializer  # Import ReviewSerializer
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -34,36 +34,28 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name']    
 
 class ListingSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(required = False)
+    image = serializers.ImageField(required=False)
     category = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(), required=True
     )
+    owner = serializers.SerializerMethodField()
+    reviews = ReviewSerializer(many=True, read_only=True)  # Include reviews
+    
     class Meta:
         model = Listing
-        fields = ['id','title','description','image','price','location','country','owner','category']
+        fields = ['id','title','description','image','price','location','country','owner','category', 'reviews']
+        
+    def get_owner(self, obj):
+        """Return both ID and username of the owner"""
+        return {
+            "id": obj.owner.id,
+            "username": obj.owner.username
+        }
      
     def to_representation(self, instance):
         data = super().to_representation(instance)
         request = self.context.get('request')
         if instance.image and request:
             data['image'] = request.build_absolute_uri(instance.image.url)
-        return data  
-    
-    # def create(self, validated_data):
-    #     # Get the category name from data
-    #     category_name = validated_data.pop('category', None)
-
-    #     # Find or create category
-    #     category, _ = Category.objects.get(name=category_name)
-
-    #     # Assign category object to validated_data
-    #     validated_data['category'] = category
-
-    #     # Create and return listing
-    #     return Listing.objects.get(**validated_data)
-
-    def to_representation(self, instance):
-        """Return only category name instead of full object"""
-        data = super().to_representation(instance)
         data['category'] = instance.category.name if instance.category else None
         return data

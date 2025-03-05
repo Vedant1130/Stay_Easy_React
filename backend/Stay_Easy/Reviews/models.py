@@ -8,10 +8,10 @@ class Review(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reviews")
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reviews")
 
     def __str__(self):
-        return f"Review by {self.author.username} - {self.rating} Stars"
+        return f"Review by {self.owner.username} - {self.rating} Stars"
     
     # @property
     # def listing_instance(self):
