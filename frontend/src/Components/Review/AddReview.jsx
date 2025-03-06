@@ -1,28 +1,9 @@
 import React, { useState } from "react";
-import { FrownOutlined, MehOutlined, SmileOutlined } from "@ant-design/icons";
+import { Rate } from "antd";
 
 const iconColor = "#fe424d";
 
-const customIcons = {
-  1: (selected) => (
-    <FrownOutlined style={{ color: selected ? iconColor : "gray" }} />
-  ),
-  2: (selected) => (
-    <FrownOutlined style={{ color: selected ? iconColor : "gray" }} />
-  ),
-  3: (selected) => (
-    <MehOutlined style={{ color: selected ? iconColor : "gray" }} />
-  ),
-  4: (selected) => (
-    <SmileOutlined style={{ color: selected ? iconColor : "gray" }} />
-  ),
-  5: (selected) => (
-    <SmileOutlined style={{ color: selected ? iconColor : "gray" }} />
-  ),
-};
-
 const AddReview = () => {
-  const [value, setValue] = useState(0);
   const [comment, setComment] = useState("");
 
   const handleAdd = () => {
@@ -40,17 +21,7 @@ const AddReview = () => {
       <h2 className="text-xl font-semibold mb-1">Write a review</h2>
       {/* Star Rating Buttons */}
       <div className="flex gap-2 mb-1">
-        {[1, 2, 3, 4, 5].map((num) => (
-          <button
-            key={num}
-            className={`text-2xl ${
-              num <= value ? "text-red-500" : "text-gray-400"
-            }`}
-            onClick={() => setValue(num)}
-          >
-            {customIcons[num](num <= value)}
-          </button>
-        ))}
+        <Rate allowHalf style={{ color: iconColor }} />
       </div>
       {/* Larger Textarea for Review Input */}
       <textarea
@@ -62,13 +33,13 @@ const AddReview = () => {
       {/* Buttons */}
       <div className="flex gap-2">
         <button
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg"
+          className="px-4 py-2 bg-colar-red text-white rounded-lg"
           onClick={handleAdd}
         >
           Add
         </button>
         <button
-          className="px-4 py-2 bg-gray-300 text-black rounded-lg"
+          className="px-4 py-2 bg-slate-900 text-white rounded-lg"
           onClick={handleCancel}
         >
           Cancel

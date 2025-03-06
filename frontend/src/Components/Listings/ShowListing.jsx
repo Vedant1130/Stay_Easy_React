@@ -10,6 +10,7 @@ import { FaTrash } from "react-icons/fa";
 import Review from "../Review/Review";
 import Loader from "../Loader/Loader";
 import { FaUserCircle } from "react-icons/fa";
+import { Rate } from "antd";
 
 const ShowListing = () => {
   const { id } = useParams();
@@ -80,13 +81,13 @@ const ShowListing = () => {
             {user && listing.owner?.id === user.id && (
               <div className="flex gap-4 mt-4">
                 <Link
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                  className="bg-colar-red text-white px-4 py-2 rounded-md hover:bg-blue-700"
                   to={`/listings/edit/${listing.id}`}
                 >
                   Edit
                 </Link>
                 <button
-                  className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+                  className="bg-slate-900 text-white px-4 py-2 rounded-md"
                   onClick={() => setOpen(true)}
                 >
                   Delete
@@ -98,24 +99,52 @@ const ShowListing = () => {
           {/* Right: Added Review Section */}
           <div className="col-span-3">
             <h3 className="text-lg font-semibold mb-2">Recent Reviews</h3>
-            <div className="bg-gray-100 p-3 rounded-md shadow-sm mb-2">
-              <p className="font-semibold">John Doe</p>
-              <p className="text-sm text-gray-600">
-                "Great place, very clean and well maintained!"
-              </p>
-            </div>
-            <div className="bg-gray-100 p-3 rounded-md shadow-sm mb-2">
-              <p className="font-semibold">Alice Smith</p>
-              <p className="text-sm text-gray-600">
-                "Loved the location and amenities. Would visit again!"
-              </p>
-            </div>
-            <div className="bg-gray-100 p-3 rounded-md shadow-sm">
-              <p className="font-semibold">Michael Brown</p>
-              <p className="text-sm text-gray-600">
-                "Host was very friendly and helpful!"
-              </p>
-            </div>
+            {listing.reviews && listing.reviews.length > 0 ? (
+              listing.reviews.map((review, index) => (
+                <div
+                  key={index}
+                  className="bg-gray-100 p-3 rounded-md shadow-sm mb-2"
+                >
+                  {/* User Info with Image */}
+                  <div className="flex items-center space-x-3 mb-2">
+                    <FaUserCircle className="text-gray-500 w-10 h-10" />
+                    <div>
+                      <p className="font-semibold">{review.owner_username}</p>
+                      <span className="text-gray-500 text-sm">
+                        •
+                        {new Intl.RelativeTimeFormat("en", {
+                          numeric: "auto",
+                        }).format(
+                          Math.floor(
+                            (new Date(review.created_at) - new Date()) /
+                              (1000 * 60 * 60 * 24)
+                          ),
+                          "day"
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Rating and Stars */}
+                  <div className="flex items-center space-x-2">
+                    <div className="flex">
+                      <Rate
+                        disabled
+                        className="text-colar-red"
+                        allowHalf
+                        value={review.rating}
+                        count={Math.ceil(review.rating)}
+                        style={{ fontSize: "14px" }}
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-lg text-slate-950">{review.comment}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">No reviews yet.</p>
+            )}
           </div>
         </div>
         <hr className="my-6" />
