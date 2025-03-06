@@ -14,5 +14,5 @@ urlpatterns = [
     path('update/<int:id>/', views.update_listing, name='update-listing'),
     path('delete/<int:id>/', views.delete_listing, name='delete-listing'),
     path('create-listing/', views.create_listing, name='create_listing'),
-    path('authenticated/', views.is_authenticated),
+    path('authenticated/', views.is_authenticated)
 ]

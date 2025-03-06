@@ -11,6 +11,7 @@ from django.db.models import Q
 from rest_framework.views import APIView
 from .filters import ListingFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
 
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.decorators import parser_classes
@@ -18,6 +19,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated , AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework import generics
+
+from .models import Review
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self,request,*args, **kwargs):
@@ -239,3 +242,4 @@ def delete_listing(request, id):
     
     except Listing.DoesNotExist:
         return Response({"error": "Listing does not exist"}, status=status.HTTP_404_NOT_FOUND)
+    

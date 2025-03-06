@@ -4,8 +4,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Review(models.Model):
     comment = models.TextField()
-    rating = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    rating = models.FloatField(  # Changed to FloatField
+        validators=[MinValueValidator(1.0), MaxValueValidator(5.0)]
     )
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reviews")
@@ -17,3 +17,4 @@ class Review(models.Model):
     # def listing_instance(self):
     #     Listing = apps.get_model('Listings', 'Listing')
     #     return Listing.objects.get(id=self.listing.id)
+    
