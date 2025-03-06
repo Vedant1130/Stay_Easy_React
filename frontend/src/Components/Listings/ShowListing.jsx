@@ -21,14 +21,14 @@ const ShowListing = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchShowListing = async () => {
-      setLoading(true);
-      const data = await show_listings(id);
-      setLoading(false);
-      setListing(data);
-    };
     fetchShowListing();
   }, [id]);
+  const fetchShowListing = async () => {
+    setLoading(true);
+    const data = await show_listings(id);
+    setLoading(false);
+    setListing(data);
+  };
 
   const handleDelete = async () => {
     const response = await delete_listing(id);
@@ -99,56 +99,59 @@ const ShowListing = () => {
           {/* Right: Added Review Section */}
           <div className="col-span-3">
             <h3 className="text-lg font-semibold mb-2">Recent Reviews</h3>
-            {listing.reviews && listing.reviews.length > 0 ? (
-              listing.reviews.map((review, index) => (
-                <div
-                  key={index}
-                  className="bg-gray-100 p-3 rounded-md shadow-sm mb-2"
-                >
-                  {/* User Info with Image */}
-                  <div className="flex items-center space-x-3 mb-2">
-                    <FaUserCircle className="text-gray-500 w-10 h-10" />
-                    <div>
-                      <p className="font-semibold">{review.owner_username}</p>
-                      <span className="text-gray-500 text-sm">
-                        •
-                        {new Intl.RelativeTimeFormat("en", {
-                          numeric: "auto",
-                        }).format(
-                          Math.floor(
-                            (new Date(review.created_at) - new Date()) /
-                              (1000 * 60 * 60 * 24)
-                          ),
-                          "day"
-                        )}
-                      </span>
-                    </div>
-                  </div>
 
-                  {/* Rating and Stars */}
-                  <div className="flex items-center space-x-2">
-                    <div className="flex">
-                      <Rate
-                        disabled
-                        className="text-colar-red"
-                        allowHalf
-                        value={review.rating}
-                        count={Math.ceil(review.rating)}
-                        style={{ fontSize: "14px" }}
-                      />
+            {/* Scrollable Container */}
+            <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
+              {listing.reviews && listing.reviews.length > 0 ? (
+                listing.reviews.map((review, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-100 p-3 rounded-md shadow-sm"
+                  >
+                    {/* User Info with Image */}
+                    <div className="flex items-center space-x-3 mb-2">
+                      <FaUserCircle className="text-gray-500 w-10 h-10" />
+                      <div>
+                        <p className="font-semibold">{review.owner_username}</p>
+                        <span className="text-gray-500 text-sm">
+                          •
+                          {new Intl.RelativeTimeFormat("en", {
+                            numeric: "auto",
+                          }).format(
+                            Math.floor(
+                              (new Date(review.created_at) - new Date()) /
+                                (1000 * 60 * 60 * 24)
+                            ),
+                            "day"
+                          )}
+                        </span>
+                      </div>
                     </div>
+                    {/* Rating and Stars */}
+                    <div className="flex items-center space-x-2">
+                      <div className="flex">
+                        <Rate
+                          disabled
+                          className="text-colar-red"
+                          allowHalf
+                          value={review.rating}
+                          count={Math.ceil(review.rating)}
+                          style={{ fontSize: "14px" }}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-lg text-slate-950">{review.comment}</p>
                   </div>
-
-                  <p className="text-lg text-slate-950">{review.comment}</p>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-500">No reviews yet.</p>
-            )}
+                ))
+              ) : (
+                <p className="text-gray-500">No reviews yet.</p>
+              )}
+            </div>
           </div>
         </div>
         <hr className="my-6" />
-        <Review /> {/* Keeping original reviews at old place */}
+        <Review id={id} onReviewAdded={fetchShowListing} />
+        {/* Keeping original reviews at old place */}
         <DeletePopup open={open} onClose={() => setOpen(false)}>
           <div className="text-center w-56">
             <FaTrash size={56} className="mx-auto text-red-500" />

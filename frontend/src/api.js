@@ -1,20 +1,24 @@
 import axios from "axios";
 // axios.defaults.withCredentials = true;
 
-const BASE_URL = " http://127.0.0.1:8000/Listings/";
-const LOGIN_URL = `${BASE_URL}login/`;
-const LOGOUT_URL = `${BASE_URL}logout/`;
-const REFRESH_URL = `${BASE_URL}token/refresh/`;
-const GET_LISTINGS = `${BASE_URL}home/`;
-const GET_CATEGORIES_URL = `${BASE_URL}categories/`;
-const SHOW_LISTINGS = `${BASE_URL}show/`;
-const CREATE_LISTINGS = `${BASE_URL}create-listing/`;
-const SEARCH_URL = `${BASE_URL}search/`;
-const FILTER_URL = `${BASE_URL}filter/`;
-const AUTH_URL = `${BASE_URL}authenticated/`;
-const REGISTER_URL = `${BASE_URL}register/`;
-const UPDATE_URL = `${BASE_URL}update/`;
-const DELETE_URL = `${BASE_URL}delete/`;
+const LISTING_URL = " http://127.0.0.1:8000/Listings/";
+const REVIEW_URL = " http://127.0.0.1:8000/Reviews/";
+const LOGIN_URL = `${LISTING_URL}login/`;
+const LOGOUT_URL = `${LISTING_URL}logout/`;
+const REFRESH_URL = `${LISTING_URL}token/refresh/`;
+const GET_LISTINGS = `${LISTING_URL}home/`;
+const GET_CATEGORIES_URL = `${LISTING_URL}categories/`;
+const SHOW_LISTINGS = `${LISTING_URL}show/`;
+const CREATE_LISTINGS = `${LISTING_URL}create-listing/`;
+const SEARCH_URL = `${LISTING_URL}search/`;
+const FILTER_URL = `${LISTING_URL}filter/`;
+const AUTH_URL = `${LISTING_URL}authenticated/`;
+const REGISTER_URL = `${LISTING_URL}register/`;
+const UPDATE_URL = `${LISTING_URL}update/`;
+const DELETE_URL = `${LISTING_URL}delete/`;
+
+const REVIEW_SUMMARY = `${REVIEW_URL}reviews-summary/`;
+const ADD_REVIEW = `${REVIEW_URL}create/`;
 
 export const login = async (username, password) => {
   try {
@@ -263,5 +267,39 @@ export const get_categories = async () => {
   } catch (error) {
     console.error("Error fetching categories:", error);
     throw error;
+  }
+};
+
+export const getListingReviewsSummary = async (id) => {
+  try {
+    const response = await axios.get(`${REVIEW_SUMMARY}${id}/`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching listing reviews:", error);
+    return {
+      success: false,
+      error: error.response?.data?.error || "Something went wrong",
+    };
+  }
+};
+
+export const addReview = async (id, rating, comment) => {
+  try {
+    const formData = new FormData();
+    formData.append("rating", rating);
+    formData.append("comment", comment);
+
+    const response = await axios.post(
+      `${ADD_REVIEW}${id}/`, // Adjust endpoint as per backend
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true, // If authentication is required
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error creating review:", error);
+    return null;
   }
 };

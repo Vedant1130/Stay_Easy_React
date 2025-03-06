@@ -16,7 +16,7 @@ def create_review(request, listing_id):
         serializer = ReviewSerializer(data=request.data)
 
         if serializer.is_valid():
-            review = serializer.save(author=request.user)  # Assign logged-in user as author
+            review = serializer.save(owner=request.user)  # Assign logged-in user as author
             listing.reviews.add(review)  # Add review to listing
             listing.save()
             
