@@ -164,7 +164,7 @@ def show_listing(request, id):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-@parser_classes([MultiPartParser, FormParser , JSONParser])
+@parser_classes([MultiPartParser, FormParser, JSONParser])
 @permission_classes([IsAuthenticated])
 def create_listing(request):
     try:
@@ -172,10 +172,7 @@ def create_listing(request):
             return Response({"error": "User not authenticated"}, status=401)
 
         # Get the data from the request
-        data = request.data
-
-        # Add the logged-in user as the owner of the listing
-        data["owner"] = request.user.id
+        data = request.data.copy()  # Create a mutable copy
 
         # Ensure that a category is provided in the request
         category_id = data.get('category', None)
@@ -188,15 +185,11 @@ def create_listing(request):
         except Category.DoesNotExist:
             return Response({"error": "Category not found."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Associate the category with the listing
-        data["category"] = category.id  # Ensure the category is properly passed in
-
         # Use the ListingSerializer to validate and save the data
-        serializer = ListingSerializer(data=data)
+        serializer = ListingSerializer(data=data, context={'request': request})
 
-        # Validate and save the data
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(owner=request.user)  # ✅ Assign owner here
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

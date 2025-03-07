@@ -34,7 +34,7 @@ const Listing = ({ searchResults, isTaxEnabled }) => {
                 <div className="absolute w-full h-full rounded-3xl overflow-hidden bg-white flex items-center justify-center backface-hidden">
                   <img
                     src={listing.image}
-                    className="w-[350px] h-[590px] object-cover rounded-3xl"
+                    className="w-full h-96 object-cover rounded-3xl"
                     alt="Listing"
                   />
                 </div>

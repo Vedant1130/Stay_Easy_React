@@ -19,6 +19,7 @@ const DELETE_URL = `${LISTING_URL}delete/`;
 
 const REVIEW_SUMMARY = `${REVIEW_URL}reviews-summary/`;
 const ADD_REVIEW = `${REVIEW_URL}create/`;
+const DELETE_REVIEW = `${REVIEW_URL}delete/`;
 
 export const login = async (username, password) => {
   try {
@@ -301,5 +302,20 @@ export const addReview = async (id, rating, comment) => {
   } catch (error) {
     console.error("Error creating review:", error);
     return null;
+  }
+};
+
+export const deleteReview = async (listingId, reviewId) => {
+  try {
+    const response = await axios.delete(
+      `${DELETE_REVIEW}${listingId}/review/${reviewId}/`,
+      {
+        withCredentials: true,
+      }
+    );
+    return response.data; // Success response
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    return { success: false, message: "Failed to delete review." };
   }
 };

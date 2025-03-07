@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate, useParams } from "react-router";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { delete_listing, show_listings } from "../../api";
+import { delete_listing, deleteReview, show_listings } from "../../api";
 import { useAuth } from "../../contexts/useAuth";
 import { showToast } from "../ToastNotification/ToastNotification";
 import DeletePopup from "../Popup/deletePopup";
@@ -16,6 +16,8 @@ const ShowListing = () => {
   const { id } = useParams();
   const [listing, setListing] = useState([]);
   const [open, setOpen] = useState(false);
+  const [isReviewDeleteOpen, setIsReviewDeleteOpen] = useState(false);
+  const [selectedReviewId, setSelectedReviewId] = useState(null);
   const { user } = useAuth();
   const nav = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -30,6 +32,7 @@ const ShowListing = () => {
     setListing(data);
   };
 
+  // Delete Listing
   const handleDelete = async () => {
     const response = await delete_listing(id);
 
@@ -42,6 +45,26 @@ const ShowListing = () => {
       nav("/");
     } else {
       showToast(response.message || "Failed to delete listing.", "error");
+    }
+  };
+
+  // Open Review Delete Modal
+  const handleOpenReviewDeleteModal = (reviewId) => {
+    setSelectedReviewId(reviewId);
+    setIsReviewDeleteOpen(true);
+  };
+
+  // Delete Review
+  const handleDeleteReview = async () => {
+    if (!selectedReviewId) return;
+
+    const response = await deleteReview(id, selectedReviewId); // Ensure you have delete_review API
+    if (response.success) {
+      showToast("Review deleted successfully!", "success");
+      setIsReviewDeleteOpen(false);
+      fetchShowListing(); // Refresh listing after deleting review
+    } else {
+      showToast("Failed to delete review.", "error");
     }
   };
 
@@ -112,7 +135,19 @@ const ShowListing = () => {
                     <div className="flex items-center space-x-3 mb-2">
                       <FaUserCircle className="text-gray-500 w-10 h-10" />
                       <div>
-                        <p className="font-semibold">{review.owner_username}</p>
+                        <div className="flex items-center space-x-28">
+                          <p className="font-semibold">
+                            {review.owner_username}
+                          </p>
+                          {user && listing.owner?.id === user.id && (
+                            <FaTrash
+                              onClick={() =>
+                                handleOpenReviewDeleteModal(review.id)
+                              }
+                              className="text-colar-red cursor-pointer"
+                            />
+                          )}
+                        </div>
                         <span className="text-gray-500 text-sm">
                           •
                           {new Intl.RelativeTimeFormat("en", {
@@ -151,7 +186,8 @@ const ShowListing = () => {
         </div>
         <hr className="my-6" />
         <Review id={id} onReviewAdded={fetchShowListing} />
-        {/* Keeping original reviews at old place */}
+
+        {/* Delete Listing Modal */}
         <DeletePopup open={open} onClose={() => setOpen(false)}>
           <div className="text-center w-56">
             <FaTrash size={56} className="mx-auto text-red-500" />
@@ -173,6 +209,38 @@ const ShowListing = () => {
               <button
                 className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 w-full"
                 onClick={() => setOpen(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </DeletePopup>
+
+        {/* Delete Review Modal */}
+        <DeletePopup
+          open={isReviewDeleteOpen}
+          onClose={() => setIsReviewDeleteOpen(false)}
+        >
+          <div className="text-center w-56">
+            <FaTrash size={56} className="mx-auto text-red-500" />
+            <div className="mx-auto my-4 w-48">
+              <h3 className="text-lg font-black text-gray-800">
+                Confirm Delete
+              </h3>
+              <p className="text-sm text-gray-500">
+                Are you sure you want to delete this review?
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <button
+                className="bg-red-600 text-white px-4 py-2 rounded-md w-full"
+                onClick={() => handleDeleteReview()}
+              >
+                Delete
+              </button>
+              <button
+                className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md w-full"
+                onClick={() => setIsReviewDeleteOpen(false)}
               >
                 Cancel
               </button>

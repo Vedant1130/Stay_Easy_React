@@ -37,7 +37,7 @@ def delete_review(request, listing_id, review_id):
         review = get_object_or_404(Review, id=review_id)
 
         # Check if the logged-in user is the review author
-        if request.user != review.author:
+        if request.user != review.owner:
             return Response({'success': False, 'message': 'You are not authorized to delete this review'}, status=403)
 
         # Remove review from listing

@@ -25,6 +25,7 @@ const AddReview = ({ id, onReviewAdded }) => {
 
       if (response && response.success) {
         showToast("Review added successfully!", "success");
+        setRating(0)
         setComment("");
         if (onReviewAdded) {
           onReviewAdded(); // This will refresh the listing page
@@ -65,7 +66,7 @@ const AddReview = ({ id, onReviewAdded }) => {
         >
           Add {loading && <Loader />}
         </button>
-        <button
+        {/* <button
           className="px-4 py-2 bg-slate-900 text-white rounded-lg"
           onClick={() => {
             setRating(0);
@@ -73,7 +74,7 @@ const AddReview = ({ id, onReviewAdded }) => {
           }}
         >
           Cancel
-        </button>
+        </button> */}
       </div>
     </>
   );
