@@ -20,41 +20,60 @@ from rest_framework.permissions import IsAuthenticated , AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework import generics
 
+from django.core.mail import send_mail
+from django.utils.timezone import now
+from .models import UserProfile
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from django.contrib.auth.models import User
+from django.conf import settings
+import random
+
 from .models import Review
 
 class CustomTokenObtainPairView(TokenObtainPairView):
-    def post(self,request,*args, **kwargs):
+    def post(self, request, *args, **kwargs):
         try:
-          response = super().post(request,*args, **kwargs)
-          tokens = response.data
-        
-          access_token = tokens['access']
-          refresh_token = tokens['refresh']
-        
-          res = Response()
-        
-          res.data={'success':True,}
+            # Get user instance
+            username = request.data.get("username")
+            user = User.objects.get(username=username)
             
-          res.set_cookie(
-              key="access_token",
-              value=access_token,
-              httponly=True,
-              secure=True,
-              samesite='None',
-              path='/'
-          )
-          res.set_cookie(
-              key="refresh_token",
-              value=refresh_token,
-              httponly=True,
-              secure=True,
-              samesite='None',
-              path='/'
-          )
-          return res
-          
-        except:
-            return Response({'success':False})  
+            # Check if user is verified
+            if not user.profile.is_verified:  
+                return Response({'success': False, 'message': 'Email not verified'}, status=status.HTTP_403_FORBIDDEN)
+
+            # Proceed with token generation
+            response = super().post(request, *args, **kwargs)
+            tokens = response.data
+
+            access_token = tokens['access']
+            refresh_token = tokens['refresh']
+
+            res = Response()
+            res.data = {'success': True}
+
+            res.set_cookie(
+                key="access_token",
+                value=access_token,
+                httponly=True,
+                secure=True,
+                samesite='None',
+                path='/'
+            )
+            res.set_cookie(
+                key="refresh_token",
+                value=refresh_token,
+                httponly=True,
+                secure=True,
+                samesite='None',
+                path='/'
+            )
+            return res
+
+        except User.DoesNotExist:
+            return Response({'success': False, 'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'success': False, 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)  
          
 class CustomRefreshTokenView(TokenRefreshView):
     def post(self,request,*args, **kwargs):
@@ -132,14 +151,119 @@ def is_authenticated(request):
     user = request.user
     return Response({"user": {"id": user.id, "username": user.username, "email": user.email}})
 
+def send_otp_email(user):
+    profile = user.profile
+    profile.generate_otp()
+    send_mail(
+        'Your OTP Code',
+        f'Your OTP code is {profile.otp}. It will expire in 10 minutes.',
+        'stayeasy863@gmail.com',
+        [user.email],
+        fail_silently=False,
+    )
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
     serializer = UserRegistrationSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)  
+        user = serializer.save()
+
+        # ✅ Create/Update UserProfile
+        profile, created = UserProfile.objects.update_or_create(user=user)
+
+        # ✅ Generate OTP
+        profile.generate_otp()
+
+        # ✅ Send OTP via Email
+        send_mail(
+            "Your OTP for StayEasy Verification",
+            f"Hello {user.username},\nYour OTP is: {profile.otp}",
+            settings.EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False,
+        )
+
+        return Response(
+            {"message": "OTP sent to your email. Please verify."},
+            status=status.HTTP_201_CREATED
+        )
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_otp(request):
+    """Verify OTP before setting is_verified = True"""
+    email = request.data.get("email")
+    otp = request.data.get("otp")
+
+    if not email or not otp:
+        return Response({"error": "Email and OTP are required!"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(email=email)
+        profile = user.profile  # Use `user.profile` as per your model's related_name
+
+        # Check if user is already verified
+        if profile.is_verified:
+            return Response({"message": "User already verified!"}, status=status.HTTP_200_OK)
+
+        # Validate OTP
+        if profile.otp != otp:
+            return Response({"error": "Invalid OTP!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if OTP is expired
+        if profile.otp_expiry and profile.otp_expiry < now():
+            return Response({"error": "OTP has expired. Please request a new one."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Mark user as verified
+        profile.is_verified = True
+        profile.otp = None  # Clear OTP after verification
+        profile.otp_expiry = None
+        profile.save()
+
+        return Response({"message": "Email verified successfully!"}, status=status.HTTP_200_OK)
+
+    except User.DoesNotExist:
+        return Response({"error": "User not found!"}, status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def resend_otp(request):
+    """Resend a new OTP if the previous one has expired"""
+    email = request.data.get("email")
+
+    if not email:
+        return Response({"error": "Email is required!"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(email=email)
+        profile = user.profile  # Access UserProfile through related_name
+
+        # Generate a new OTP
+        new_otp = str(random.randint(100000, 999999))
+        from django.utils.timezone import timedelta
+        profile.otp = new_otp
+        profile.otp_expiry = now() + timedelta(minutes=10)  # Valid for 10 minutes
+        profile.save()
+        
+        send_mail(
+            "Your OTP for StayEasy Verification",
+            f"New OTP for {email}: {new_otp}",
+            settings.EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False,
+        )
+
+        # Simulate sending OTP via email (Replace with actual email sending logic)
+        # print(f"New OTP for {email}: {new_otp}")  # Replace with email service
+
+        return Response({"message": "New OTP sent successfully!"}, status=status.HTTP_200_OK)
+
+    except User.DoesNotExist:
+        return Response({"error": "User not found!"}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['GET'])
 @permission_classes({AllowAny})
