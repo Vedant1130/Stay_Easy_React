@@ -16,6 +16,8 @@ const AUTH_URL = `${LISTING_URL}authenticated/`;
 const REGISTER_URL = `${LISTING_URL}register/`;
 const UPDATE_URL = `${LISTING_URL}update/`;
 const DELETE_URL = `${LISTING_URL}delete/`;
+const VERIFY_OTP = `${LISTING_URL}verify-otp/`;
+const RESEND_OTP = `${LISTING_URL}resend-otp/`;
 
 const REVIEW_SUMMARY = `${REVIEW_URL}reviews-summary/`;
 const ADD_REVIEW = `${REVIEW_URL}create/`;
@@ -29,15 +31,26 @@ export const login = async (username, password) => {
       { withCredentials: true, headers: { "Content-Type": "application/json" } }
     );
 
-    if (response.data.success) {
-      localStorage.setItem("access_token", response.data.access_token);
-      localStorage.setItem("refresh_token", response.data.refresh_token);
-      return true;
+    if (response.data?.success) {
+      return {
+        success: true,
+        message: response.data.message,
+        access_token: response.data.access_token,
+        refresh_token: response.data.refresh_token,
+        email: response.data?.email || null, // Ensure email is always defined
+      };
     } else {
-      return false;
+      console.error("❌ Login Failed:", response.data);
+      return {
+        success: false,
+        message: response.data?.message || "Login failed",
+      };
     }
   } catch (error) {
-    return false;
+    const errorMessage =
+      error.response?.data?.message || error.message || "Something went wrong";
+    console.error("❌ Login Error:", errorMessage);
+    return { success: false, message: errorMessage };
   }
 };
 
@@ -132,9 +145,26 @@ const call_refresh = async (error, retryFunc) => {
 
 export const is_authenticated = async () => {
   try {
-    const response = await axios.post(AUTH_URL, {}, { withCredentials: true });
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      console.error("No access token found in localStorage");
+      return false;
+    }
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+
+    const response = await axios.post(AUTH_URL, {}, { headers });
+
     return response.data;
   } catch (error) {
+    console.error(
+      "Authentication check failed:",
+      error.response?.data || error.message
+    );
     return false;
   }
 };
@@ -317,5 +347,40 @@ export const deleteReview = async (listingId, reviewId) => {
   } catch (error) {
     console.error("Error deleting review:", error);
     return { success: false, message: "Failed to delete review." };
+  }
+};
+
+export const verifyOtp = async (email, otp) => {
+  try {
+    const response = await axios.post(`${VERIFY_OTP}`, {
+      email,
+      otp,
+    });
+    if (response?.data?.success) {
+      return response.data;
+    } else {
+      return response.data || { error: "OTP verification failed" };
+    }
+  } catch (error) {
+    return error.response?.data || { error: "Something went wrong" };
+  }
+};
+
+export const resendOtp = async (email) => {
+  try {
+    const response = await axios.post(`${RESEND_OTP}`, { email });
+
+    // Ensure consistent response format
+    return {
+      success: response.data?.success ?? false,
+      message: response.data?.message || "",
+      error: null,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: "",
+      error: error.response?.data?.error || "Something went wrong",
+    };
   }
 };

@@ -29,7 +29,7 @@ const Listing = ({ searchResults, isTaxEnabled }) => {
             {/* Flip Card Container */}
             <div className="group w-[390px] h-[390px]  perspective-1000">
               {/* Flip Card Wrapper */}
-              <div className="relative w-full h-full  transition-transform duration-500 preserve-3d group-hover:rotate-y-180">
+              <div className="relative w-full h-full  transition-transform duration-1000 preserve-3d group-hover:rotate-y-180">
                 {/* Front Side */}
                 <div className="absolute w-full h-full rounded-3xl overflow-hidden bg-white flex items-center justify-center backface-hidden">
                   <img

@@ -3,6 +3,7 @@ import { is_authenticated, login, logout } from "../api";
 import { useNavigate } from "react-router-dom";
 import { showToast } from "../Components/ToastNotification/ToastNotification";
 import Loader from "../Components/Loader/Loader";
+import OtpPopup from "../Components/Popup/OtpPopup";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -35,22 +36,58 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login_user = async (username, password) => {
+  const login_user = async (
+    username,
+    password,
+    openOtpPopup,
+    setRegisteredEmail
+  ) => {
     try {
-      const success = await login(username, password);
+      const response = await login(username, password);
+      console.log("🔍 Full Login Response:", response);
 
-      if (!success) {
-        // ❌ If login failed, stop here
-        showToast("Invalid username or password", "error");
+      if (
+        response?.success &&
+        response?.access_token &&
+        response?.refresh_token
+      ) {
+        localStorage.setItem("access_token", response.access_token);
+        localStorage.setItem("refresh_token", response.refresh_token);
+
+        await get_authenticated();
+        setIsAuthenticated(true);
+        showToast(response.message || "Login successful!", "success");
+        nav("/");
+        return true;
+      } else {
+        console.error("❌ Login response does not contain tokens:", response);
+      }
+
+      // ✅ Fix: Extract Email Correctly
+      if (!response.success && response.message === "Email not verified") {
+        showToast("Email is not verified", "error");
+
+        // 🔍 Log possible locations of email
+        console.log("📩 Checking response structure:", response);
+
+        // Extract email from the correct location
+
+        const email = response?.data?.data?.email || null;
+        console.log("Extracted Email:", email);
+
+        setRegisteredEmail(email); // Set email (fallback to username if missing)
+
+        // Open OTP popup after a delay
+        setTimeout(() => {
+          openOtpPopup(true);
+        }, 2000);
         return false;
       }
 
-      await get_authenticated(); // ✅ Only call if login succeeds
-      setIsAuthenticated(true);
-      showToast("Login successful!", "success");
-      nav("/");
-      return true;
+      showToast(response.message || "Invalid username or password", "error");
+      return false;
     } catch (error) {
+      console.error("❌ Login API Catch Error:", error);
       showToast("Something went wrong. Try again!", "error");
       return false;
     }
