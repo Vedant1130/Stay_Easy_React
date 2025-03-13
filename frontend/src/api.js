@@ -28,7 +28,12 @@ export const login = async (username, password) => {
     const response = await axios.post(
       LOGIN_URL,
       { username, password },
-      { withCredentials: true, headers: { "Content-Type": "application/json" } }
+      {
+        withCredentials: true, // Required for cookies to be sent/received
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
     );
 
     if (response.data?.success) {
@@ -37,7 +42,7 @@ export const login = async (username, password) => {
         message: response.data.message,
         access_token: response.data.access_token,
         refresh_token: response.data.refresh_token,
-        email: response.data?.email || null, // Ensure email is always defined
+        email: response.data.email,
       };
     } else {
       console.error("❌ Login Failed:", response.data);
@@ -47,10 +52,37 @@ export const login = async (username, password) => {
       };
     }
   } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Something went wrong";
-    console.error("❌ Login Error:", errorMessage);
-    return { success: false, message: errorMessage };
+    console.error("❌ Login Error:", error);
+
+    if (error.response) {
+      // Handle specific backend errors
+      if (
+        error.response.status === 403 &&
+        error.response.data?.message === "Email not verified"
+      ) {
+        return {
+          success: false,
+          message: "Email not verified",
+          email: error.response.data?.data?.email,
+        };
+      }
+      return {
+        success: false,
+        message: error.response.data?.message || "Login failed",
+      };
+    } else if (error.request) {
+      // No response received
+      return {
+        success: false,
+        message: "No response from server. Please try again.",
+      };
+    } else {
+      // Request setup error
+      return {
+        success: false,
+        message: "Something went wrong. Please try again.",
+      };
+    }
   }
 };
 

@@ -57,11 +57,13 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             if not user.profile.is_verified:
                 logger.warning(f"Login failed: {username} not verified")
                 send_otp_email(user)
+
                 return Response({
                     'success': False,
                     'message': 'Email not verified',
                     'data': {'email': user.email}
-                }, status=status.HTTP_403_FORBIDDEN)
+                   }, status=status.HTTP_403_FORBIDDEN)
+                 
 
             # ✅ Authenticate user
             authenticated_user = authenticate(request, username=username, password=password)
@@ -87,14 +89,14 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                     value=access_token,
                     httponly=True,
                     samesite='Lax',
-                    secure=settings.USE_HTTPS  # Secure in production
+                    secure='/'  # Secure in production
                 )
                 response.set_cookie(
                     key="refresh_token",
                     value=refresh_token,
                     httponly=True,
                     samesite='Lax',
-                    secure=settings.USE_HTTPS  # Secure in production
+                    secure='/'  # Secure in production
                 )
 
                 return response  # ✅ Return response with tokens
@@ -263,6 +265,20 @@ def verify_otp(request):
     profile.otp = None  # Clear OTP after verification
     profile.otp_expiry = None
     profile.save()
+    
+    refresh = RefreshToken.for_user(user)
+    access_token = str(refresh.access_token)
+
+    return Response({
+        "message": "Email verified successfully!",
+        "access_token": access_token,
+        "refresh_token": str(refresh),
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username
+        }
+    }, status=status.HTTP_200_OK)
     
     logger.info(f"User {user.email} verified successfully")
     

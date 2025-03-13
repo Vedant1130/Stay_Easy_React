@@ -20,7 +20,11 @@ export const AuthProvider = ({ children }) => {
 
       if (response && response.user) {
         setIsAuthenticated(true);
-        setUser(response.user);
+        setUser((prevUser) =>
+          JSON.stringify(prevUser) !== JSON.stringify(response.user)
+            ? response.user
+            : prevUser
+        );
       } else {
         setIsAuthenticated(false);
         setUser(null);
@@ -44,7 +48,22 @@ export const AuthProvider = ({ children }) => {
   ) => {
     try {
       const response = await login(username, password);
-      console.log("🔍 Full Login Response:", response);
+
+      // ✅ Fix: Extract Email Correctly
+      if (!response.success && response.message === "Email not verified") {
+        showToast("Email is not verified", "error");
+        const email = response.email;
+
+        if (email) {
+          setRegisteredEmail(email); // Set the email for OTP verification
+        }
+
+        // Open OTP popup after a delay
+        setTimeout(() => {
+          openOtpPopup(true);
+        }, 2000);
+        return false;
+      }
 
       if (
         response?.success &&
@@ -62,28 +81,6 @@ export const AuthProvider = ({ children }) => {
       } else {
         console.error("❌ Login response does not contain tokens:", response);
       }
-
-      // ✅ Fix: Extract Email Correctly
-      if (!response.success && response.message === "Email not verified") {
-        showToast("Email is not verified", "error");
-
-        // 🔍 Log possible locations of email
-        console.log("📩 Checking response structure:", response);
-
-        // Extract email from the correct location
-
-        const email = response?.data?.data?.email || null;
-        console.log("Extracted Email:", email);
-
-        setRegisteredEmail(email); // Set email (fallback to username if missing)
-
-        // Open OTP popup after a delay
-        setTimeout(() => {
-          openOtpPopup(true);
-        }, 2000);
-        return false;
-      }
-
       showToast(response.message || "Invalid username or password", "error");
       return false;
     } catch (error) {
@@ -129,6 +126,8 @@ export const AuthProvider = ({ children }) => {
         showLoginPopup,
         setShowLoginPopup,
         user,
+        get_authenticated,
+        setIsAuthenticated,
       }}
     >
       {loading ? <Loader /> : children}

@@ -8,7 +8,7 @@ import Loader from "../Loader/Loader";
 import { search_listings } from "../../api";
 
 const Navbar = ({ setSearchResults }) => {
-  const { logout_user, user } = useAuth();
+  const { logout_user, user, isAuthenticated } = useAuth();
   const [searchDestination, setSearchDestination] = useState("");
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);

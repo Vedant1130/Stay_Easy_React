@@ -139,7 +139,7 @@ const ShowListing = () => {
                           <p className="font-semibold">
                             {review.owner_username}
                           </p>
-                          {user && listing.owner?.id === user.id && (
+                          {user && review.owner === user.id && (
                             <FaTrash
                               onClick={() =>
                                 handleOpenReviewDeleteModal(review.id)

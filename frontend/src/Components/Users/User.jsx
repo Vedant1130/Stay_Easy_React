@@ -18,7 +18,7 @@ const initialValues = {
 const User = ({ onClose, onLoginSuccess }) => {
   const [isActive, setIsActive] = useState(false);
   const [otpPopupOpen, setOtpPopupOpen] = useState(false); // ✅ Manage OTP popup visibility
-  const { login_user } = useAuth();
+  const { login_user, user, get_authenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
@@ -26,6 +26,7 @@ const User = ({ onClose, onLoginSuccess }) => {
   const [registeredEmail, setRegisteredEmail] = useState(""); // ✅ Store email for OTP verification
   const [isResending, setIsResending] = useState(false); // ✅ Track OTP resend state
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isLogin, setIsLogin] = useState(false);
 
   // Get last attempted page or default to home
   const from = location.state?.from?.pathname || "/";
@@ -35,6 +36,7 @@ const User = ({ onClose, onLoginSuccess }) => {
     initialValues: { username: "", password: "" },
     validationSchema: loginSchema,
     onSubmit: async ({ username, password }, { setSubmitting }) => {
+      setIsLogin(true);
       try {
         const success = await login_user(
           username,
@@ -48,6 +50,7 @@ const User = ({ onClose, onLoginSuccess }) => {
       } catch (error) {
         showToast("Login failed. Please try again.", "error");
       }
+      setIsLogin(false);
       setSubmitting(false);
     },
   });
@@ -93,22 +96,31 @@ const User = ({ onClose, onLoginSuccess }) => {
       return;
     }
 
-    console.log("📩 Email Sent to API:", registeredEmail);
-    console.log("🔢 OTP Entered:", otp);
-
     setIsVerifyingOtp(true);
 
     try {
       const response = await verifyOtp(registeredEmail, otp);
-      console.log("🔍 OTP Verification Response:", response);
 
       if (response?.message?.includes("User already verified")) {
         showToast("User is already verified! Proceed to login.", "info");
         setOtpPopupOpen(false);
       } else if (response?.message?.includes("Email verified successfully")) {
-        showToast("OTP verified! Redirecting...", "success");
+        showToast("OTP verified! Logging in...", "success");
+
         setOtpPopupOpen(false);
         setIsActive(false);
+        if (response.access_token && response.refresh_token) {
+          localStorage.setItem("access_token", response.access_token);
+          localStorage.setItem("refresh_token", response.refresh_token);
+
+          await get_authenticated(); // ✅ Update authentication state
+          navigate("/"); // ✅ Redirect to homepage after login
+        } else {
+          showToast(
+            "Login failed after OTP verification. Try manually.",
+            "error"
+          );
+        }
       } else {
         showToast(
           response?.error || response?.message || "Invalid OTP. Try again.",
@@ -121,7 +133,7 @@ const User = ({ onClose, onLoginSuccess }) => {
     }
 
     setIsVerifyingOtp(false);
-};
+  };
 
   const handleResendOtp = async () => {
     setIsResending(true);
@@ -150,6 +162,7 @@ const User = ({ onClose, onLoginSuccess }) => {
   return (
     <>
       {isRegistering && <Loader />}
+      {isLogin && <Loader />}
       <div className="flex justify-center items-center w-full h-screen bg-gray-300">
         <div
           className={`relative w-full h-full bg-white shadow-2xl overflow-hidden transition-all duration-[1.8s] ${
