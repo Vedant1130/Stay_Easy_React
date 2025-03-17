@@ -9,7 +9,7 @@ from django.db.models import Avg, Count
 from .serializer import ReviewSerializer
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])  # Only logged-in users can post reviews
+@permission_classes([AllowAny])  # Only logged-in users can post reviews
 def create_review(request, listing_id):
     try:
         listing = get_object_or_404(Listing, id=listing_id)  # Get the listing
