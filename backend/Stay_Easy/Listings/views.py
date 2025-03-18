@@ -34,6 +34,9 @@ from django.conf import settings
 import random
 import logging
 import secrets
+import razorpay
+from django.conf import settings
+from .models import Booking, Payment
 
 from .models import Review
 
@@ -356,6 +359,9 @@ def create_listing(request):
     try:
         if request.user.is_anonymous:
             return Response({"error": "User not authenticated"}, status=401)
+        print("🔍 DEBUG: Cookies received:", request.COOKIES)
+        print("🔍 DEBUG: Authorization Header:", request.headers.get("Authorization"))
+        
 
         # Get the data from the request
         data = request.data.copy()  # Create a mutable copy
@@ -421,4 +427,105 @@ def delete_listing(request, id):
     
     except Listing.DoesNotExist:
         return Response({"error": "Listing does not exist"}, status=status.HTTP_404_NOT_FOUND)
-    
+
+
+#Payment Gateways
+class CreateRazorpayOrder(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            user = request.user
+            amount = request.data.get("amount")  # Amount in INR
+            listing_id = request.data.get("listing_id")
+            check_in = request.data.get("check_in")
+            check_out = request.data.get("check_out")
+            guests = request.data.get("guests")
+
+            if not amount or not listing_id or not check_in or not check_out:
+                return Response({"error": "All fields are required"}, status=400)
+
+            listing = get_object_or_404(Listing, id=listing_id)
+
+            # Create Booking
+            booking = Booking.objects.create(
+                user=user,
+                listing=listing,
+                check_in=check_in,
+                check_out=check_out,
+                guests=guests,
+                total_price=amount,
+                is_paid=False
+            )
+
+            # Create Razorpay Order
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            order_data = {
+                "amount": int(float(amount) * 100), 
+                "currency": "INR",  # Always INR
+                "receipt": f"booking_{booking.id}",
+                "payment_capture": 1,
+            }
+            order = client.order.create(order_data)
+
+            # Save Payment Entry
+            payment = Payment.objects.create(
+                booking=booking,  # ✅ Link to booking
+                amount=amount,
+                order_id=order["id"],  # ✅ No currency field
+                status="Created"
+            )
+
+            return Response({
+                "success": True,
+                "message": "Order created successfully",
+                "order_id": order["id"],
+                "booking_id": booking.id,
+                "amount": order["amount"],
+                "currency": order["currency"]  # Just returned, not stored in DB
+            }, status=201)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+        
+class VerifyRazorpayPayment(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            razorpay_payment_id = request.data.get("razorpay_payment_id")
+            razorpay_order_id = request.data.get("razorpay_order_id")
+            razorpay_signature = request.data.get("razorpay_signature")
+
+            if not all([razorpay_payment_id, razorpay_order_id, razorpay_signature]):
+                return Response({"error": "All payment details are required"}, status=400)
+
+            # Fetch the payment entry
+            payment = get_object_or_404(Payment, order_id=razorpay_order_id)
+
+            # Verify Payment Signature using Razorpay SDK
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            params_dict = {
+                "razorpay_order_id": razorpay_order_id,
+                "razorpay_payment_id": razorpay_payment_id,
+                "razorpay_signature": razorpay_signature,
+            }
+            try:
+                client.utility.verify_payment_signature(params_dict)
+            except razorpay.errors.SignatureVerificationError:
+                return Response({"error": "Payment verification failed"}, status=400)
+
+            # Update Payment Status
+            payment.payment_id = razorpay_payment_id
+            payment.status = "Paid"
+            payment.save()
+
+            # Update Booking Status
+            payment.booking.is_paid = True
+            payment.booking.save()
+
+            return Response({"success": True, "message": "Payment verified successfully"}, status=200)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)

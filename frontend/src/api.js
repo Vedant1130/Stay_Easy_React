@@ -18,6 +18,8 @@ const UPDATE_URL = `${LISTING_URL}update/`;
 const DELETE_URL = `${LISTING_URL}delete/`;
 const VERIFY_OTP = `${LISTING_URL}verify-otp/`;
 const RESEND_OTP = `${LISTING_URL}resend-otp/`;
+const CREATE_PAYMENT = `${LISTING_URL}payment/create/`;
+const VERIFY_PAYMENT = `${LISTING_URL}payment/verify/`;
 
 const REVIEW_SUMMARY = `${REVIEW_URL}reviews-summary/`;
 const ADD_REVIEW = `${REVIEW_URL}create/`;
@@ -140,9 +142,13 @@ export const create_listing = async (
     formData.append("country", country);
     formData.append("location", location);
     formData.append("category", category);
+    const token = localStorage.getItem("access_token");
 
     const response = await axios.post(CREATE_LISTINGS, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
       withCredentials: true,
     });
 
@@ -152,7 +158,9 @@ export const create_listing = async (
 
     return await call_refresh(error, () =>
       axios.post(CREATE_LISTINGS, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
         withCredentials: true,
       })
     );
@@ -278,7 +286,11 @@ export const update_listing = async (
 
 export const delete_listing = async (id) => {
   try {
+    const token = localStorage.getItem("access_token");
     const response = await axios.delete(`${DELETE_URL}${id}/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       withCredentials: true,
     });
 
@@ -351,12 +363,16 @@ export const addReview = async (id, rating, comment) => {
     const formData = new FormData();
     formData.append("rating", rating);
     formData.append("comment", comment);
+    const token = localStorage.getItem("access_token");
 
     const response = await axios.post(
       `${ADD_REVIEW}${id}/`, // Adjust endpoint as per backend
       formData,
       {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
         withCredentials: true, // If authentication is required
       }
     );
@@ -369,9 +385,13 @@ export const addReview = async (id, rating, comment) => {
 
 export const deleteReview = async (listingId, reviewId) => {
   try {
+    const token = localStorage.getItem("access_token");
     const response = await axios.delete(
       `${DELETE_REVIEW}${listingId}/review/${reviewId}/`,
       {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         withCredentials: true,
       }
     );
@@ -414,5 +434,32 @@ export const resendOtp = async (email) => {
       message: "",
       error: error.response?.data?.error || "Something went wrong",
     };
+  }
+};
+
+export const createRazorpayOrder = async (token, paymentData) => {
+  try {
+    const response = await axios.post(CREATE_PAYMENT, paymentData, {
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
+    return response.data; // Returns { order_id, amount, currency, booking_id }
+  } catch (error) {
+    console.error("Error creating Razorpay order:", error);
+    throw error.response?.data || { message: "Failed to create order" };
+  }
+};
+
+// Verify Razorpay Payment
+export const verifyRazorpayPayment = async (token, paymentResponse) => {
+  try {
+    const response = await axios.post(VERIFY_PAYMENT, paymentResponse, {
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
+    return response.data; // { success: true, message: "Payment verified successfully" }
+  } catch (error) {
+    console.error("Error verifying Razorpay payment:", error);
+    throw error.response?.data || { message: "Payment verification failed" };
   }
 };

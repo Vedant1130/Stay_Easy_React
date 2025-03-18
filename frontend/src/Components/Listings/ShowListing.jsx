@@ -11,6 +11,9 @@ import Review from "../Review/Review";
 import Loader from "../Loader/Loader";
 import { FaUserCircle } from "react-icons/fa";
 import { Rate } from "antd";
+import { handleRazorpayPayment } from "../../Components/Payment/handlePayment"; // Import payment handler
+import Booking from "../Booking/Booking";
+
 
 const ShowListing = () => {
   const { id } = useParams();
@@ -18,7 +21,9 @@ const ShowListing = () => {
   const [open, setOpen] = useState(false);
   const [isReviewDeleteOpen, setIsReviewDeleteOpen] = useState(false);
   const [selectedReviewId, setSelectedReviewId] = useState(null);
-  const { user } = useAuth();
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const { user, get_authenticated, isAuthenticated } = useAuth();
   const nav = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -68,6 +73,8 @@ const ShowListing = () => {
     }
   };
 
+  
+
   return (
     <>
       {loading && <Loader />}
@@ -101,21 +108,54 @@ const ShowListing = () => {
               </span>
             </p>
 
+            {/* ✅ Show Payment Button Only for Non-Owners */}
+            {user && listing.owner?.id !== user.id && (
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 mt-4"
+                onClick={() => setIsBookingOpen(true)}
+              >
+                Book Now
+              </button>
+            )}
+            {/* Show the Booking component when isBookingOpen is true */}
+
+            {isBookingOpen && (
+              <Booking
+                onClose={() => setIsBookingOpen(false)}
+                onReserve={() => {
+                  setIsBookingOpen(false); // Close booking
+                  setIsPaymentOpen(true); // Open payment modal
+                }}
+                pricePerNight={listing.price}
+                listingId={listing.id}
+              />
+            )}
+            {/* {isPaymentOpen && (
+              <Paymentconfirm
+                onClose={() => setIsPaymentOpen(false)}
+                pricePerNight={listing.price}
+                listing={listing}
+              />
+            )} */}
+
+            {/* Show Edit/Delete only for the listing owner */}
             {user && listing.owner?.id === user.id && (
-              <div className="flex gap-4 mt-4">
-                <Link
-                  className="bg-colar-red text-white px-4 py-2 rounded-md hover:bg-blue-700"
-                  to={`/listings/edit/${listing.id}`}
-                >
-                  Edit
-                </Link>
-                <button
-                  className="bg-slate-900 text-white px-4 py-2 rounded-md"
-                  onClick={() => setOpen(true)}
-                >
-                  Delete
-                </button>
-              </div>
+              <>
+                <div className="flex gap-4 mt-4">
+                  <Link
+                    className="bg-colar-red text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                    to={`/listings/edit/${listing.id}`}
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    className="bg-slate-900 text-white px-4 py-2 rounded-md"
+                    onClick={() => setOpen(true)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </>
             )}
           </div>
 

@@ -39,3 +39,29 @@ class Listing(models.Model):
     
     def __str__(self):
         return self.title
+    
+# ✅ NEW: Booking Model
+class Booking(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bookings")
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="bookings")
+    check_in = models.DateField()
+    check_out = models.DateField()
+    guests = models.IntegerField(default=1)
+    total_price = models.FloatField()
+    is_paid = models.BooleanField(default=False)  # Payment status
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.listing.title} ({self.check_in} to {self.check_out})"
+
+# ✅ NEW: Payment Model
+class Payment(models.Model):
+    booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name="payment")
+    order_id = models.CharField(max_length=255, unique=True)
+    payment_id = models.CharField(max_length=255, null=True, blank=True)
+    amount = models.FloatField()
+    status = models.CharField(max_length=50, default="Pending")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Payment {self.order_id} - {self.status}"    

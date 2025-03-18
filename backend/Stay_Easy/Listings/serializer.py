@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Listing, Category
+from .models import Listing, Category ,Payment
 from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
 from Reviews.serializer import ReviewSerializer  # Import ReviewSerializer
@@ -59,3 +59,8 @@ class ListingSerializer(serializers.ModelSerializer):
             data['image'] = request.build_absolute_uri(instance.image.url)
         data['category'] = instance.category.name if instance.category else None
         return data
+    
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ['booking', 'order_id', 'payment_id', 'amount', 'status', 'created_at']    

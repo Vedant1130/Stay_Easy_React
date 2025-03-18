@@ -16,5 +16,7 @@ urlpatterns = [
     path('update/<int:id>/', views.update_listing, name='update-listing'),
     path('delete/<int:id>/', views.delete_listing, name='delete-listing'),
     path('create-listing/', views.create_listing, name='create_listing'),
+    path("payment/create/", views.CreateRazorpayOrder.as_view(), name="create_payment"),
+    path("payment/verify/", views.VerifyRazorpayPayment.as_view(), name="verify_payment"),
     path('authenticated/', views.is_authenticated)
 ]
