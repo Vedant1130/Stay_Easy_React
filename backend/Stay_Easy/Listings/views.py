@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from .models import Listing,Category
-from .serializer import ListingSerializer,UserRegistrationSerializer,CategorySerializer
+from .serializer import ListingSerializer,UserRegistrationSerializer,CategorySerializer,BookingSerializer
 from rest_framework import status
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -187,7 +187,7 @@ def logout(request):
 @permission_classes([IsAuthenticated])
 def is_authenticated(request):
     if request.user.is_authenticated:
-        return Response({"user": {"id": request.user.id, "username": request.user.username}})
+        return Response({"user": {"id": request.user.id, "username": request.user.username,"email":request.user.email}})
     
     return Response({"error": "User not authenticated"}, status=401)
 
@@ -437,53 +437,40 @@ class CreateRazorpayOrder(APIView):
     def post(self, request):
         try:
             user = request.user
-            amount = request.data.get("amount")  # Amount in INR
+            amount = request.data.get("amount")
             listing_id = request.data.get("listing_id")
             check_in = request.data.get("check_in")
             check_out = request.data.get("check_out")
             guests = request.data.get("guests")
 
-            if not amount or not listing_id or not check_in or not check_out:
+            if not all([amount, listing_id, check_in, check_out]):
                 return Response({"error": "All fields are required"}, status=400)
 
             listing = get_object_or_404(Listing, id=listing_id)
 
-            # Create Booking
-            booking = Booking.objects.create(
-                user=user,
-                listing=listing,
-                check_in=check_in,
-                check_out=check_out,
-                guests=guests,
-                total_price=amount,
-                is_paid=False
-            )
-
-            # Create Razorpay Order
+            # ✅ Do NOT create booking here. Only create Razorpay order.
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
             order_data = {
-                "amount": int(float(amount) * 100), 
-                "currency": "INR",  # Always INR
-                "receipt": f"booking_{booking.id}",
+                "amount": int(float(amount) * 100),
+                "currency": "INR",
+                "receipt": f"user_{user.id}_{listing.id}",
                 "payment_capture": 1,
             }
             order = client.order.create(order_data)
 
-            # Save Payment Entry
-            payment = Payment.objects.create(
-                booking=booking,  # ✅ Link to booking
-                amount=amount,
-                order_id=order["id"],  # ✅ No currency field
-                status="Created"
-            )
+        #     # ✅ Save only payment entry, not booking
+        #     payment = Payment.objects.create(
+        #     order_id=order["id"],  # ✅ Only store order ID
+        #     amount=amount,
+        #     status="Created"
+        #    )
 
             return Response({
                 "success": True,
                 "message": "Order created successfully",
                 "order_id": order["id"],
-                "booking_id": booking.id,
                 "amount": order["amount"],
-                "currency": order["currency"]  # Just returned, not stored in DB
+                "currency": order["currency"]
             }, status=201)
 
         except Exception as e:
@@ -497,14 +484,20 @@ class VerifyRazorpayPayment(APIView):
             razorpay_payment_id = request.data.get("razorpay_payment_id")
             razorpay_order_id = request.data.get("razorpay_order_id")
             razorpay_signature = request.data.get("razorpay_signature")
+            check_in = request.data.get("check_in")
+            check_out = request.data.get("check_out")
+            guests = request.data.get("guests")
+            amount = request.data.get("amount")
+            listing_id = request.data.get("listing_id")
+
 
             if not all([razorpay_payment_id, razorpay_order_id, razorpay_signature]):
                 return Response({"error": "All payment details are required"}, status=400)
 
-            # Fetch the payment entry
-            payment = get_object_or_404(Payment, order_id=razorpay_order_id)
+            # # ✅ Fetch the payment entry
+            # payment = get_object_or_404(Payment, order_id=razorpay_order_id)
 
-            # Verify Payment Signature using Razorpay SDK
+            # ✅ Verify Payment Signature using Razorpay SDK
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
             params_dict = {
                 "razorpay_order_id": razorpay_order_id,
@@ -516,16 +509,55 @@ class VerifyRazorpayPayment(APIView):
             except razorpay.errors.SignatureVerificationError:
                 return Response({"error": "Payment verification failed"}, status=400)
 
-            # Update Payment Status
-            payment.payment_id = razorpay_payment_id
-            payment.status = "Paid"
-            payment.save()
+            # ✅ Get booking details from the request
+            listing_id = request.data.get("listing_id")
+            check_in = request.data.get("check_in")
+            check_out = request.data.get("check_out")
+            guests = request.data.get("guests")
 
-            # Update Booking Status
-            payment.booking.is_paid = True
-            payment.booking.save()
+            if not all([listing_id, check_in, check_out, guests]):
+                return Response({"error": "All booking details are required"}, status=400)
 
-            return Response({"success": True, "message": "Payment verified successfully"}, status=200)
+            # ✅ Fetch the Listing
+            listing = get_object_or_404(Listing, id=listing_id)
+
+            # ✅ Create the Booking after successful payment
+            booking = Booking.objects.create(
+                user=request.user,
+                listing=listing,  # ✅ Use listing from request
+                check_in=check_in,
+                check_out=check_out,
+                guests=guests,
+                total_price=amount,
+                is_paid=True
+            )
+
+            # ✅ Now Create a Payment Entry
+            payment = Payment.objects.create(
+                booking=booking,
+                amount=amount,
+                order_id=razorpay_order_id,
+                payment_id=razorpay_payment_id,
+                status="Paid"
+            )
+
+            return Response({"success": True, "message": "Payment verified, booking confirmed", "booking_id": booking.id}, status=200)
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+        
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])  # Requires JWT Authentication
+def get_bookings(request):
+    try:
+        user = request.user  # Get authenticated user
+        paid_bookings = Booking.objects.filter(user=user, is_paid=True)  # Fetch paid bookings
+        
+        if not paid_bookings.exists():
+            return Response({"message": "No paid bookings found."}, status=status.HTTP_200_OK)
+
+        serializer = BookingSerializer(paid_bookings, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)        

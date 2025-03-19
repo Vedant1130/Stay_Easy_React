@@ -10,9 +10,15 @@ class ListingAdmin(admin.ModelAdmin):
     search_fields=['title']
     list_filter = ['location']
     
+class PaymentAdmin(admin.ModelAdmin):
+    list_display=['booking','amount','status',]    
+    
+class BookingAdmin(admin.ModelAdmin):
+    list_display=['user','listing','total_price','is_paid']    
+    
 admin.site.register(Listing , ListingAdmin)
 admin.site.register(Category)
 admin.site.register(Review)
-admin.site.register(Payment)
-admin.site.register(Booking)
+admin.site.register(Payment,PaymentAdmin)
+admin.site.register(Booking,BookingAdmin)
 

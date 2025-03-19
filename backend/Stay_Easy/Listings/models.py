@@ -56,7 +56,7 @@ class Booking(models.Model):
 
 # ✅ NEW: Payment Model
 class Payment(models.Model):
-    booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name="payment")
+    booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name="payment",null=True, blank=True)
     order_id = models.CharField(max_length=255, unique=True)
     payment_id = models.CharField(max_length=255, null=True, blank=True)
     amount = models.FloatField()

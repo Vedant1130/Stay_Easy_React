@@ -18,7 +18,6 @@ export const handleRazorpayPayment = async (token, paymentData) => {
     document.body.appendChild(razorpayScript);
 
     razorpayScript.onload = async () => {
-        
       const options = {
         key: "rzp_test_i0FyFCvdQZfy1U", // Replace with your Razorpay key
         amount: amount, // Razorpay expects amount in paise
@@ -29,7 +28,20 @@ export const handleRazorpayPayment = async (token, paymentData) => {
         handler: async function (response) {
           try {
             // ✅ Step 3: Verify Payment in Backend
-            const verifyResponse = await verifyRazorpayPayment(token, response);
+            let { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
+              response;
+            let { listing_id, check_in, check_out, guests, amount } =
+              paymentData;
+            const verifyResponse = await verifyRazorpayPayment(token, {
+              razorpay_payment_id,
+              razorpay_order_id,
+              razorpay_signature,
+              listing_id,
+              check_in,
+              check_out,
+              guests,
+              amount,
+            });
 
             if (verifyResponse.success) {
               alert("Payment successful! Booking confirmed.");

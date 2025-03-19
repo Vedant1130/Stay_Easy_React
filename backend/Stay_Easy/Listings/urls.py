@@ -18,5 +18,6 @@ urlpatterns = [
     path('create-listing/', views.create_listing, name='create_listing'),
     path("payment/create/", views.CreateRazorpayOrder.as_view(), name="create_payment"),
     path("payment/verify/", views.VerifyRazorpayPayment.as_view(), name="verify_payment"),
+    path("booking/", views.get_bookings, name="get_bookings"),
     path('authenticated/', views.is_authenticated)
 ]

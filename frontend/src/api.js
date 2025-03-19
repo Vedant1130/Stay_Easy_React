@@ -20,6 +20,7 @@ const VERIFY_OTP = `${LISTING_URL}verify-otp/`;
 const RESEND_OTP = `${LISTING_URL}resend-otp/`;
 const CREATE_PAYMENT = `${LISTING_URL}payment/create/`;
 const VERIFY_PAYMENT = `${LISTING_URL}payment/verify/`;
+const GET_BOOKINGS = `${LISTING_URL}booking/`;
 
 const REVIEW_SUMMARY = `${REVIEW_URL}reviews-summary/`;
 const ADD_REVIEW = `${REVIEW_URL}create/`;
@@ -450,7 +451,6 @@ export const createRazorpayOrder = async (token, paymentData) => {
   }
 };
 
-// Verify Razorpay Payment
 export const verifyRazorpayPayment = async (token, paymentResponse) => {
   try {
     const response = await axios.post(VERIFY_PAYMENT, paymentResponse, {
@@ -461,5 +461,18 @@ export const verifyRazorpayPayment = async (token, paymentResponse) => {
   } catch (error) {
     console.error("Error verifying Razorpay payment:", error);
     throw error.response?.data || { message: "Payment verification failed" };
+  }
+};
+
+export const get_bookings = async (token) => {
+  try {
+    const response = await axios.get(GET_BOOKINGS, {
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching paid bookings:", error);
+    throw error.response?.data || { message: "Failed to fetch bookings" };
   }
 };

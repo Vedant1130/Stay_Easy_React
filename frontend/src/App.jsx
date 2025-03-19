@@ -13,6 +13,7 @@ import ToastNotification from "./Components/ToastNotification/ToastNotification"
 import Filter from "./Components/Filter/Filter";
 import TaxToggle from "./Components/TaxToggle/TaxToggle";
 import User from "./Components/Users/User";
+import Trips from "./Components/Trips/Trips";
 
 function App() {
   const [searchResults, setSearchResults] = useState([]);
@@ -75,6 +76,7 @@ function App() {
                           </PrivateRoute>
                         }
                       />
+                      <Route path="/trips" element={<Trips />} />
                     </Routes>
                   </div>
                 </div>

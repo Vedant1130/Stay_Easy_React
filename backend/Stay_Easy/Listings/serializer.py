@@ -2,7 +2,8 @@ from rest_framework import serializers
 from .models import Listing, Category ,Payment
 from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
-from Reviews.serializer import ReviewSerializer  # Import ReviewSerializer
+from Reviews.serializer import ReviewSerializer
+from .models import Booking# Import ReviewSerializer
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -64,3 +65,15 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = ['booking', 'order_id', 'payment_id', 'amount', 'status', 'created_at']    
+        
+class BookingSerializer(serializers.ModelSerializer):
+    listing_title = serializers.CharField(source="listing.title", read_only=True)
+    listing_image = serializers.ImageField(source="listing.image", read_only=True)
+    owner_name = serializers.CharField(source="listing.owner.username", read_only=True)
+    
+    class Meta:
+        model = Booking
+        fields = [
+            "id", "listing_title", "listing_image", "owner_name", "check_in",
+            "check_out", "guests", "total_price", "created_at"
+        ]        
