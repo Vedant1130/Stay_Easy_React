@@ -1,4 +1,6 @@
+import { useNavigate } from "react-router-dom";
 import { createRazorpayOrder, verifyRazorpayPayment } from "../../api"; // Import your API functions
+import { showToast } from "../ToastNotification/ToastNotification";
 
 export const handleRazorpayPayment = async (token, paymentData) => {
   try {
@@ -44,14 +46,17 @@ export const handleRazorpayPayment = async (token, paymentData) => {
             });
 
             if (verifyResponse.success) {
-              alert("Payment successful! Booking confirmed.");
-              window.location.reload(); // Refresh or redirect after successful payment
+              showToast("Payment successful! Booking confirmed.", "success");
+              window.location.reload(); 
             } else {
-              alert("Payment verification failed. Please contact support.");
+              showToast(
+                "Payment verification failed. Please contact support.",
+                "error"
+              );
             }
           } catch (error) {
             console.error("Payment Verification Error:", error);
-            alert("Payment verification failed.");
+            showToast("Payment verification failed.", "error");
           }
         },
         prefill: {
@@ -68,6 +73,6 @@ export const handleRazorpayPayment = async (token, paymentData) => {
     };
   } catch (error) {
     console.error("Payment Error:", error);
-    alert("Payment failed. Please try again.");
+    showToast("Payment failed. Please try again.", "error");
   }
 };

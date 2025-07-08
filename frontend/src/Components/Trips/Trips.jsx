@@ -3,6 +3,8 @@ import { useAuth } from "../../contexts/useAuth";
 import { get_bookings } from "../../api";
 import { FaUserCircle } from "react-icons/fa";
 import { GoVerified } from "react-icons/go";
+import Loader from "../Loader/Loader";
+import { showToast } from "../ToastNotification/ToastNotification";
 
 const Trips = () => {
   const { user } = useAuth();
@@ -50,16 +52,13 @@ const Trips = () => {
       {/* Booking List */}
       <div className="w-full mt-6">
         {loading ? (
-          <p className="text-lg">Loading...</p>
+          <Loader />
         ) : error ? (
           <p className="text-red-500">{error}</p>
         ) : (bookings?.length || 0) === 0 ? ( // ✅ Safer way to check if array is empty
           <div className="text-center p-6 bg-white rounded-lg shadow-md w-full">
             <p className="text-lg font-bold">No trips booked... yet!</p>
             <p className="text-gray-600">Start planning your next adventure.</p>
-            <button className="mt-4 bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-lg transition">
-              Start Searching
-            </button>
           </div>
         ) : (
           <div className="flex flex-col gap-6 mt-4">

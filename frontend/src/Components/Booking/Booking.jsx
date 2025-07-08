@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { createRazorpayOrder } from "../../api";
 import { useAuth } from "../../contexts/useAuth";
 import Paymentconfirm from "../Payment/paymentConfirm";
+import Loader from "../Loader/Loader";
 
 const Booking = ({ pricePerNight, listingId, onClose }) => {
   const [checkIn, setCheckIn] = useState("");
@@ -64,7 +65,7 @@ const Booking = ({ pricePerNight, listingId, onClose }) => {
         checkIn,
         checkOut,
         guests,
-        listingId
+        listingId,
       });
 
       setShowPaymentModal(true); // Show PaymentConfirm modal
@@ -74,7 +75,6 @@ const Booking = ({ pricePerNight, listingId, onClose }) => {
       setLoading(false);
     }
   };
-
   return (
     <div className="fixed inset-0 bg-slate-200 bg-opacity-40 backdrop-blur-sm flex justify-center items-center z-50">
       <div className="bg-white p-8 rounded-lg shadow-xl w-[450px] border">
@@ -87,23 +87,27 @@ const Booking = ({ pricePerNight, listingId, onClose }) => {
 
         {/* Date & Guest Selection */}
         <div className="border rounded-lg mt-4 overflow-hidden">
-          <div className="grid grid-cols-2 border-b">
+          <div className="grid grid-cols-2 border-b border-gray-300">
             <div className="p-3">
-              <label className="text-xs font-bold">CHECK-IN</label>
+              <label className="text-xs font-bold text-gray-600">
+                CHECK-IN
+              </label>
               <input
                 type="date"
                 value={checkIn}
                 onChange={(e) => setCheckIn(e.target.value)}
-                className="w-full outline-none"
+                className="w-full mt-1 p-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div className="p-3 border-l">
-              <label className="text-xs font-bold">CHECKOUT</label>
+            <div className="p-3 border-l border-gray-300">
+              <label className="text-xs font-bold text-gray-600">
+                CHECKOUT
+              </label>
               <input
                 type="date"
                 value={checkOut}
                 onChange={(e) => setCheckOut(e.target.value)}
-                className="w-full outline-none"
+                className="w-full mt-1 p-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -125,15 +129,16 @@ const Booking = ({ pricePerNight, listingId, onClose }) => {
 
         {/* Reserve Button */}
         <button
-          className="bg-pink-500 text-white w-full py-3 rounded-lg mt-4 text-lg"
+          className="bg-colar-red text-white w-full py-3 rounded-lg mt-4 text-lg"
           onClick={handleReserve}
           disabled={loading}
         >
-          {loading ? "Processing..." : "Reserve"}
+          Reserve
+          {loading && <Loader />}
         </button>
 
         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-        {success && <p className="text-green-500 text-sm mt-2">{success}</p>}
+        {/* {success && <p className="text-green-500 text-sm mt-2">{success}</p>} */}
 
         {/* Close Button */}
         <button
@@ -149,7 +154,6 @@ const Booking = ({ pricePerNight, listingId, onClose }) => {
         <Paymentconfirm
           bookingData={bookingData}
           onClose={() => setShowPaymentModal(false)}
-        
         />
       )}
     </div>

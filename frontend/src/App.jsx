@@ -76,7 +76,14 @@ function App() {
                           </PrivateRoute>
                         }
                       />
-                      <Route path="/trips" element={<Trips />} />
+                      <Route
+                        path="/trips"
+                        element={
+                          <PrivateRoute>
+                            <Trips />
+                          </PrivateRoute>
+                        }
+                      />
                     </Routes>
                   </div>
                 </div>

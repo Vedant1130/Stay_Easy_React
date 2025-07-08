@@ -14,7 +14,6 @@ import { Rate } from "antd";
 import { handleRazorpayPayment } from "../../Components/Payment/handlePayment"; // Import payment handler
 import Booking from "../Booking/Booking";
 
-
 const ShowListing = () => {
   const { id } = useParams();
   const [listing, setListing] = useState([]);
@@ -73,8 +72,6 @@ const ShowListing = () => {
     }
   };
 
-  
-
   return (
     <>
       {loading && <Loader />}
@@ -110,12 +107,14 @@ const ShowListing = () => {
 
             {/* ✅ Show Payment Button Only for Non-Owners */}
             {user && listing.owner?.id !== user.id && (
-              <button
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 mt-4"
-                onClick={() => setIsBookingOpen(true)}
-              >
-                Book Now
-              </button>
+              <div className="flex gap-4 mt-4">
+                <button
+                  className="bg-colar-red text-white px-4 py-2 rounded"
+                  onClick={() => setIsBookingOpen(true)}
+                >
+                  Book Now
+                </button>
+              </div>
             )}
             {/* Show the Booking component when isBookingOpen is true */}
 

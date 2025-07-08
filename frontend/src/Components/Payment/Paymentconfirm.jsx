@@ -60,7 +60,7 @@ const Paymentconfirm = ({ bookingData, onClose }) => {
               Cancel
             </button>
             <button
-              className="bg-pink-500 text-white px-6 py-2 rounded-md"
+              className="bg-colar-red text-white px-6 py-2 rounded-md"
               onClick={handlePayment}
             >
               Confirm and Pay
