@@ -11,7 +11,7 @@ class ListingAdmin(admin.ModelAdmin):
     list_filter = ['location']
     
 class PaymentAdmin(admin.ModelAdmin):
-    list_display=['booking','amount','status',]    
+    list_display=['booking','amount','status','created_at']    
     
 class BookingAdmin(admin.ModelAdmin):
     list_display=['user','listing','total_price','is_paid']    
