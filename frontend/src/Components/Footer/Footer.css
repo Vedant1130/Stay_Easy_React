@@ -1,0 +1,7 @@
+.footer a {
+  color: inherit;
+  font-size: 14px;
+}
+.footer a:hover {
+  text-decoration: underline;
+}

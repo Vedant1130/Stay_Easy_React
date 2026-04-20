@@ -1,0 +1,35 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Django Backend
+*.pyc
+*~
+__pycache__
+db.sqlite3
+/backend/Stay_Easy/media/
+/backend/Stay_Easy/static/
+
+# Frontend / React / Node
+node_modules/
+build/
+dist/
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# IDEs / Editors
+.idea/
+.vscode/
+*.swp
+*.swo

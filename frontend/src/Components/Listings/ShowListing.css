@@ -1,0 +1,22 @@
+.show-img {
+  height: 30vh;
+  object-fit: cover !important;
+}
+
+.btns {
+  display: flex;
+}
+
+.show-card {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.edit-btn {
+  background-color: #fe424d !important;
+  border: none !important;
+}
+
+.delete-btn {
+  margin-left: 2rem;
+}
